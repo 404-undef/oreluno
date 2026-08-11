@@ -1,6 +1,6 @@
 #![allow(dead_code)]
 
-use std::collections::HashMap;
+use std::collections::{BTreeSet, HashMap};
 use std::error::Error;
 use std::fmt;
 
@@ -18,7 +18,6 @@ pub enum TokenizerError {
     TokenNotFound(usize),
     CharNotFound(char),
     TokenIdPosOverflow,
-    DuplicateToken(char),
     InternalError(String),
 }
 
@@ -28,10 +27,9 @@ impl fmt::Display for TokenizerError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::TokenIdPosOverflow => write!(formatter, "Number too large to fit in `TokenId`"),
-            Self::TokenNotFound(_) => todo!(),
-            Self::CharNotFound(_) => todo!(),
-            Self::DuplicateToken(arg) => write!(formatter, "Duplicate character `{arg}` after dedup"),
-            Self::InternalError(_) => todo!(),
+            Self::TokenNotFound(arg) => write!(formatter, "Token `{arg}` not found"),
+            Self::CharNotFound(arg) => write!(formatter, "Char `{arg}` not found"),
+            Self::InternalError(arg) => write!(formatter, "{arg}"),
         }
     }
 }
@@ -65,27 +63,29 @@ impl CharTokenizer {
             ↓
             отсортировали
             ↓
-            dedup
+            убрали дубликаты
             ↓
             назначили 0..N
         */
 
-        let mut chars: Vec<char> = corpus.chars().collect();
-        chars.sort_unstable();
-        chars.dedup();
+        // 1. Собираем уникальные символы сразу в отсортированном виде
+        let unique_chars: BTreeSet<char> = corpus.chars().collect();
 
-        let mut char_to_id = HashMap::with_capacity(chars.len());
-        for (idx, ch) in chars.iter().enumerate() {
+        // 2. Выделяем память ровно под нужное количество элементов
+        let mut char_to_id = HashMap::with_capacity(unique_chars.len());
+        let mut id_to_char = Vec::with_capacity(unique_chars.len());
+
+        // 3. Заполняем обе структуры за один проход
+        for (idx, &ch) in unique_chars.iter().enumerate() {
             let token_id = TokenId::from_index(idx).ok_or(TokenizerError::TokenIdPosOverflow)?;
 
-            char_to_id
-                .insert(*ch, token_id)
-                .ok_or(TokenizerError::DuplicateToken(*ch))?;
+            char_to_id.insert(ch, token_id);
+            id_to_char.push(ch);
         }
 
         Ok(Self {
             char_to_id,
-            id_to_char: chars,
+            id_to_char,
         })
     }
 
@@ -125,14 +125,3 @@ impl CharTokenizer {
         self.char_to_id.len()
     }
 }
-
-// pub fn encode(string: &str) -> Vec<u32> {
-//     string.chars().map(|c| c as u32).collect()
-// }
-
-// pub fn decode(tokens: &[u32]) -> String {
-//     tokens
-//         .iter()
-//         .map(|&t| char::from_u32(t as u32).unwrap())
-//         .collect()
-// }
