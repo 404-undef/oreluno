@@ -40,7 +40,7 @@ pub struct CliArgs {
 }
 
 impl CliArgs {
-    /// Разбирает обязательные именованные аргументы и отклоняет неизвестные ключи
+    /// Разбирает аргументы и отклоняет неизвестные ключи
     pub fn parse(raw_args: impl Iterator<Item = String>) -> Result<CliArgs, CliArgsError> {
         let mut text = String::new();
         let mut train = PathBuf::new();

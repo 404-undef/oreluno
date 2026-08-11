@@ -15,38 +15,29 @@ fn main() {
 
 /// Основная функция, которая выполняет разбор аргументов и обработку текста
 fn run() -> Result<(), Box<dyn Error>> {
-    #[allow(unused_variables)]
     let cli_args = args::CliArgs::parse(env::args().skip(1))?;
-    let mut text = cli_args.text.clone();
+    let mut text = String::new();
 
-    #[cfg(debug_assertions)]
-    println!("cli_args: {:?}", cli_args);
 
     if !cli_args.train.as_os_str().is_empty() {
         text = std::fs::read_to_string(&cli_args.train)?;
     } else {
-        if text.is_empty() {
-            text = text_from_input();
-        }
+        todo!();
     }
 
-    let tokens = tokenizer::encode(&text);
 
-    #[cfg(debug_assertions)]
-    println!("tokens: {:?}", tokens);
+    // println!("Text length: {}", text.len());
+    // println!("Tokens count: {}", tokens.len());
+    // println!(
+    //     "Tokens: {:?}",
+    //     if tokens.len() >= 100 {
+    //         tokens[..101].to_vec()
+    //     } else {
+    //         tokens[..tokens.len()].to_vec()
+    //     }
+    // );
 
-    println!("Text length: {}", text.len());
-    println!("Tokens count: {}", tokens.len());
-    println!(
-        "Tokens: {:?}",
-        if tokens.len() >= 100 {
-            tokens[..101].to_vec()
-        } else {
-            tokens[..tokens.len()].to_vec()
-        }
-    );
-
-    println!("Source text: {}", tokenizer::decode(&tokens));
+    // println!("Source text: {}", tokenizer::decode(&tokens));
 
     Ok(())
 }
