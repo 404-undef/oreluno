@@ -18,26 +18,24 @@ fn run() -> Result<(), Box<dyn Error>> {
     let cli_args = args::CliArgs::parse(env::args().skip(1))?;
     let mut text = String::new();
 
-
     if !cli_args.train.as_os_str().is_empty() {
         text = std::fs::read_to_string(&cli_args.train)?;
-    } else {
-        todo!();
     }
 
+    let tokenizer = tokenizer::CharTokenizer::from_corpus(&text)?;
+    let tokens = tokenizer.encode(&text)?;
 
-    // println!("Text length: {}", text.len());
-    // println!("Tokens count: {}", tokens.len());
-    // println!(
-    //     "Tokens: {:?}",
-    //     if tokens.len() >= 100 {
-    //         tokens[..101].to_vec()
-    //     } else {
-    //         tokens[..tokens.len()].to_vec()
-    //     }
-    // );
-
-    // println!("Source text: {}", tokenizer::decode(&tokens));
+    println!("Text length: {}", text.len());
+    println!("Tokens count: {}", tokens.len());
+    println!(
+        "Tokens: {:?}",
+        if tokens.len() >= 100 {
+            tokens[..101].to_vec()
+        } else {
+            tokens[..tokens.len()].to_vec()
+        }
+    );
+    println!("Source text: {}", tokenizer.decode(&tokens)?);
 
     Ok(())
 }
