@@ -1,7 +1,11 @@
 #![allow(dead_code)]
+/*
+    probability distribution
+        ↓
+    selected TokenId
+*/
 
 // softmax
-
 
 // Temperature:
 // Изменяет степень случайности.
@@ -17,9 +21,7 @@
 // Математически примерно:
 // logits_i = logits_i / T
 
-
 // random sampling
-
 
 // top-k
 // top-p

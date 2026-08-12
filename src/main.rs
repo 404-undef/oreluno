@@ -74,4 +74,10 @@ fn text_from_input() -> String {
         - первые 100 token IDs
     6. восстановить текст обратно
     7. проверить encode -> decode
+
+
+    RustLLM Level 0.2 - Statistical Bigram Language Model
+
+    Научить RustLLM находить статистические зависимости между соседними токенами 
+    и впервые самостоятельно генерировать последовательность текста.
 */

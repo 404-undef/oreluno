@@ -2,12 +2,20 @@ use std::collections::{BTreeSet, HashMap};
 use std::error::Error;
 use std::fmt;
 
-/*
-    TokenId
-    ↓
-    индекс vocabulary
-    ↓
-    char
+/* 
+    человеческий мир
+        │
+        │
+    "Привет"
+        │
+        ▼
+    TOKENIZER
+        │
+        ▼
+    [4,8,7,5,6,9]
+        │
+        │
+    мир модели
 */
 
 /// Ошибки токенизации
@@ -56,6 +64,14 @@ impl fmt::Display for TokenId {
         write!(formatter, "{}", self.0)
     }
 }
+
+/*
+    TokenId
+    ↓
+    индекс vocabulary
+    ↓
+    char
+*/
 
 /// Character-level tokenizer с vocabulary,
 /// построенным по символам обучающего корпуса
@@ -210,20 +226,3 @@ mod tests {
         ));
     }
 }
-
-
-/* 
-    человеческий мир
-        │
-        │
-    "Привет"
-        │
-        ▼
-    TOKENIZER
-        │
-        ▼
-    [4,8,7,5,6,9]
-        │
-        │
-    мир модели
-*/
