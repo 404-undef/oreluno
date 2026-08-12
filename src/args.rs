@@ -39,6 +39,14 @@ pub struct CliArgs {
     pub train: PathBuf,
 }
 
+// TODO: Переделать на:
+// pub struct CliArgs {
+//     pub text: Option<String>,
+//     pub train: Option<PathBuf>,
+// }
+// Тогда: None
+// явно означает: аргумент не передан
+
 impl CliArgs {
     /// Разбирает аргументы и отклоняет неизвестные ключи
     pub fn parse(raw_args: impl Iterator<Item = String>) -> Result<CliArgs, CliArgsError> {
@@ -86,5 +94,5 @@ fn required_arg<T>(value: Option<T>, name: &'static str) -> Result<T, CliArgsErr
 
 // Возвращает строку с инструкцией по использованию программы
 fn usage() -> &'static str {
-    "usage: rsllm --input_text <text> --train <path>"
+    "usage: rustllm --text <text> | --train <path>"
 }
