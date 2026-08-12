@@ -189,7 +189,7 @@ mod tests {
         let tokenizer = CharTokenizer::from_corpus("abc").unwrap();
         let result = tokenizer.encode("abcd");
 
-        // Должен вернуть: CharNotFound('d')
+        // Должен вернуть: UnknownChar('d')
         assert!(
             matches!(result, Err(TokenizerError::UnknownChar('d'))),
             "Expected Err(TokenizerError::UnknownChar('d')), but got {:?}",
