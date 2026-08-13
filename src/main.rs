@@ -1,9 +1,7 @@
-mod args;
-mod tokenizer;
-
-use std::env;
-use std::error::Error;
+use std::{env, error::Error};
 use std::io::{self, Write};
+
+use rustllm::{CliArgs, CharTokenizer};
 
 fn main() {
     // Разбираем аргументы командной строки и обрабатываем текст
@@ -15,14 +13,14 @@ fn main() {
 
 /// Основная функция, которая выполняет разбор аргументов и обработку текста
 fn run() -> Result<(), Box<dyn Error>> {
-    let cli_args = args::CliArgs::parse(env::args().skip(1))?;
+    let cli_args = CliArgs::parse(env::args().skip(1))?;
     let mut text = cli_args.text.clone();
 
     if !cli_args.train.as_os_str().is_empty() {
         text = std::fs::read_to_string(&cli_args.train)?;
     }
 
-    let tokenizer = tokenizer::CharTokenizer::from_corpus(&text)?;
+    let tokenizer = CharTokenizer::from_corpus(&text)?;
     let tokens = tokenizer.encode(&text)?;
 
     println!("Bytes count: {}", text.len());
@@ -51,19 +49,21 @@ fn text_from_input() -> String {
 }
 
 /*
-    Этап    Что делаем	                    Что изучаем
-    0.1     Corpus + character tokenizer    tokens, vocabulary, TokenId
-    0.2     Статистический bigram           вероятность
-    0.3     Матрица весов                   parameters, logits
-    0.4     Softmax + Cross Entropy         probability, loss
-    0.5     Ручной gradient descent         gradient, learning rate
-    0.6     Training + validation           обучение модели
-    0.7     Generation + checkpoint         inference, sampling
-*/
+    ┌───────────────────────────────────────────────────────────────────────┐
+    │  Этап   │   Что делаем	              │     Что изучаем             │
+    └───────────────────────────────────────────────────────────────────────┘
+        0.1     Corpus + character tokenizer    tokens, vocabulary, TokenId
+        0.2     Статистический bigram           вероятность
+        0.3     Матрица весов                   parameters, logits
+        0.4     Softmax + Cross Entropy         probability, loss
+        0.5     Ручной gradient descent         gradient, learning rate
+        0.6     Training + validation           обучение модели
+        0.7     Generation + checkpoint         inference, sampling
+    └───────────────────────────────────────────────────────────────────────┘
 
-/*
+
     RustLLM Level 0.1
-
+    ────────────────────
     1. cargo new rustllm
     2. положить небольшой corpus.txt
     3. прочитать его в Rust
@@ -76,8 +76,48 @@ fn text_from_input() -> String {
     7. проверить encode -> decode
 
 
-    RustLLM Level 0.2 - Statistical Bigram Language Model
+    "Привет"
+        │
+        ▼
+    CharTokenizer
+        │
+        ▼
+    [TokenId(...), TokenId(...), ...]
 
-    Научить RustLLM находить статистические зависимости между соседними токенами 
-    и впервые самостоятельно генерировать последовательность текста.
+
+
+    RustLLM Level 0.2 - Statistical Bigram Language Model
+    ────────────────────
+    Научить RustLLM замечать, какие токены встречаются друг после друга, 
+    превращать эти наблюдения в вероятности и на их основе предсказывать 
+    следующий токен
+
+
+        ┌─────────────────────┐
+        │   обучающий текст   │
+        └──────────┬──────────┘
+                   │
+                   ▼
+             CharTokenizer
+                   │
+                   ▼
+           [4, 8, 7, 5, 6, 9]
+                   │
+                   ▼
+           StatisticalBigram
+                   │
+        ┌──────────┴─────────────┐
+        ▼                        ▼
+ transition counts         probabilities
+        │                        │
+        └──────────┬─────────────┘
+                   ▼
+           следующий TokenId
+                   │
+                   ▼
+             CharTokenizer
+                   │
+                   ▼
+                 текст
+
 */

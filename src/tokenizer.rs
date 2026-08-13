@@ -1,6 +1,5 @@
 use std::collections::{BTreeSet, HashMap};
-use std::error::Error;
-use std::fmt;
+use std::{error::Error, fmt};
 
 /* 
     человеческий мир
