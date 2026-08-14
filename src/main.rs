@@ -1,7 +1,5 @@
-use std::{env, error::Error};
 use std::io::{self, Write};
-
-use rustllm::{CliArgs, CharTokenizer};
+use std::{env, error::Error, fs};
 
 fn main() {
     // Разбираем аргументы командной строки и обрабатываем текст
@@ -13,14 +11,14 @@ fn main() {
 
 /// Основная функция, которая выполняет разбор аргументов и обработку текста
 fn run() -> Result<(), Box<dyn Error>> {
-    let cli_args = CliArgs::parse(env::args().skip(1))?;
-    let mut text = cli_args.text.clone();
-
-    if !cli_args.train.as_os_str().is_empty() {
-        text = std::fs::read_to_string(&cli_args.train)?;
+    let cli_args = rustllm::CliArgs::parse(env::args().skip(1))?;
+    let mut text = cli_args.text.unwrap_or_default();
+    
+    if let Some(train_path) = cli_args.train {
+        text = fs::read_to_string(&train_path)?;
     }
 
-    let tokenizer = CharTokenizer::from_corpus(&text)?;
+    let tokenizer = rustllm::CharTokenizer::from_corpus(&text)?;
     let tokens = tokenizer.encode(&text)?;
 
     println!("Bytes count: {}", text.len());
@@ -35,17 +33,13 @@ fn run() -> Result<(), Box<dyn Error>> {
 
 /// Получает строку из stdin и возвращает её
 #[allow(dead_code)]
-fn text_from_input() -> String {
+fn text_from_input() -> Result<String, io::Error> {
     let mut input_str = String::new();
 
     print!("> ");
-    io::stdout().flush().unwrap();
-
-    io::stdin()
-        .read_line(&mut input_str)
-        .expect("Failed to read line");
-
-    input_str.to_string()
+    io::stdout().flush()?;
+    io::stdin().read_line(&mut input_str)?;
+    Ok(input_str.to_string())
 }
 
 /*
@@ -88,8 +82,8 @@ fn text_from_input() -> String {
 
     RustLLM Level 0.2 - Statistical Bigram Language Model
     ────────────────────
-    Научить RustLLM замечать, какие токены встречаются друг после друга, 
-    превращать эти наблюдения в вероятности и на их основе предсказывать 
+    Научить RustLLM замечать, какие токены встречаются друг после друга,
+    превращать эти наблюдения в вероятности и на их основе предсказывать
     следующий токен
 
 

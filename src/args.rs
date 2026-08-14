@@ -24,9 +24,11 @@ impl std::fmt::Display for CliArgsError {
     /// Форматирует ошибку разбора аргументов для отображения пользователю
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::MissingArg(arg) => write!(formatter, "Error: missing required argument {arg}"),
-            Self::MissingValue(arg) => write!(formatter, "Error: missing value for argument {arg}"),
-            Self::UnknownArg(arg) => write!(formatter, "Error: unknown argument {arg}"),
+            Self::MissingArg(arg) => write!(formatter, "Error: missing required argument `{arg}`"),
+            Self::MissingValue(arg) => {
+                write!(formatter, "Error: missing value for argument `{arg}`")
+            }
+            Self::UnknownArg(arg) => write!(formatter, "Error: unknown argument `{arg}`"),
             Self::Usage => write!(formatter, "{}", usage()),
         }
     }
@@ -35,38 +37,38 @@ impl std::fmt::Display for CliArgsError {
 /// Структура для хранения разобранных аргументов
 #[derive(Debug, PartialEq, Eq)]
 pub struct CliArgs {
-    pub text: String,
-    pub train: PathBuf,
+    pub text: Option<String>,
+    pub train: Option<PathBuf>,
 }
-
-// TODO: Переделать на:
-// pub struct CliArgs {
-//     pub text: Option<String>,
-//     pub train: Option<PathBuf>,
-// }
-// Тогда: None
-// явно означает: аргумент не передан
 
 impl CliArgs {
     /// Разбирает аргументы и отклоняет неизвестные ключи
     pub fn parse(raw_args: impl Iterator<Item = String>) -> Result<CliArgs, CliArgsError> {
-        let mut text = String::new();
-        let mut train = PathBuf::new();
+        let mut text = None;
+        let mut train = None;
         let mut args = raw_args.peekable();
 
         while let Some(arg) = args.next() {
             match arg.as_str() {
-                "--text" => text = next_value(&mut args, "text")?,
-                "--train" => train = PathBuf::from(next_value(&mut args, "train")?),
+                "--text" => {
+                    text = Some(
+                        args.next_if(|value| !value.starts_with("--"))
+                            .unwrap_or_default(),
+                    );
+                }
+                "--train" => {
+                    let value = next_value(&mut args, "train")?;
+
+                    if !value.is_empty() {
+                        train = Some(PathBuf::from(value));
+                    }
+                }
                 "--help" | "-h" => return Err(CliArgsError::Usage),
                 _ => return Err(CliArgsError::UnknownArg(arg)),
             }
         }
 
-        Ok(Self {
-            text,
-            train,
-        })
+        Ok(Self { text, train })
     }
 }
 
@@ -75,9 +77,7 @@ fn next_value(
     args: &mut std::iter::Peekable<impl Iterator<Item = String>>,
     name: &'static str,
 ) -> Result<String, CliArgsError> {
-    let Some(value) = args.next() else {
-        return Err(CliArgsError::MissingValue(name));
-    };
+    let value = args.next().ok_or(CliArgsError::MissingValue(name))?;
 
     if value.starts_with("--") {
         return Err(CliArgsError::MissingValue(name));

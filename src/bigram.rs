@@ -54,3 +54,10 @@ impl fmt::Display for BigramError {
         todo!()
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    //...
+}
