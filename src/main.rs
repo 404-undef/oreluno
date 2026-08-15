@@ -1,10 +1,13 @@
+use rustllm::BigramStats;
+use std::env;
+use std::error::Error;
+use std::fs;
 use std::io::{self, Write};
-use std::{env, error::Error, fs};
 
 fn main() {
     // Разбираем аргументы командной строки и обрабатываем текст
     if let Err(e) = run() {
-        eprintln!("{e}");
+        eprintln!("Error: {e}");
         std::process::exit(1);
     }
 }
@@ -13,7 +16,7 @@ fn main() {
 fn run() -> Result<(), Box<dyn Error>> {
     let cli_args = rustllm::CliArgs::parse(env::args().skip(1))?;
     let mut text = cli_args.text.unwrap_or_default();
-    
+
     if let Some(train_path) = cli_args.train {
         text = fs::read_to_string(&train_path)?;
     }
@@ -27,6 +30,9 @@ fn run() -> Result<(), Box<dyn Error>> {
     println!("Vocabulary size: {}", tokenizer.vocab_size());
     println!("Tokens: {:?}", &tokens[..tokens.len().min(100)]);
     println!("Source text: {}", tokenizer.decode(&tokens)?);
+
+    let bigram_stats = BigramStats::new(tokenizer.vocab_size())?;
+    println!("bigram_stats: {:?}", bigram_stats);
 
     Ok(())
 }
@@ -43,17 +49,17 @@ fn text_from_input() -> Result<String, io::Error> {
 }
 
 /*
-    ┌───────────────────────────────────────────────────────────────────────┐
-    │  Этап   │   Что делаем	              │     Что изучаем             │
-    └───────────────────────────────────────────────────────────────────────┘
-        0.1     Corpus + character tokenizer    tokens, vocabulary, TokenId
-        0.2     Статистический bigram           вероятность
-        0.3     Матрица весов                   parameters, logits
-        0.4     Softmax + Cross Entropy         probability, loss
-        0.5     Ручной gradient descent         gradient, learning rate
-        0.6     Training + validation           обучение модели
-        0.7     Generation + checkpoint         inference, sampling
-    └───────────────────────────────────────────────────────────────────────┘
+    ┌─────────────────────────────────────────────────────────────────────────────┐
+    │  Этап   │         Что делаем	                │     Что изучаем             │
+    └─────────────────────────────────────────────────────────────────────────────┘
+        0.1     Corpus + character tokenizer          tokens, vocabulary, TokenId
+        0.2     статистическая Markov/bigram модель   вероятность
+        0.3     Матрица весов                         parameters, logits
+        0.4     Softmax + Cross Entropy               probability, loss
+        0.5     Ручной gradient descent               gradient, learning rate
+        0.6     Training + validation                 обучение модели
+        0.7     Generation + checkpoint               inference, sampling
+    └─────────────────────────────────────────────────────────────────────────────┘
 
 
     RustLLM Level 0.1
@@ -113,5 +119,14 @@ fn text_from_input() -> Result<String, io::Error> {
                    │
                    ▼
                  текст
+
+    Подэтап         Реализация                  Математика
+    0.2.1       пары соседних токенов       последовательности
+    0.2.2       V × V counts                таблицы, индексы
+    0.2.3       probabilities               дроби, сумма, вероятность
+    0.2.4       sampling                    интервалы [0,1)
+    0.2.5       deterministic PRNG          псевдослучайность
+    0.2.6       text generation loop        условная вероятность
+    0.2.7       CLI + тесты                 интеграция
 
 */
