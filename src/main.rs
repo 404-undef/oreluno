@@ -33,8 +33,10 @@ fn run() -> Result<(), Box<dyn Error>> {
     println!("Tokens: {:?}", &tokens[..tokens.len().min(100)]);
     println!("Source text: {}", tokenizer.decode(&tokens)?);
 
-    let bigram_stats = BigramStats::new(tokenizer.vocab_size())?;
+    let mut bigram_stats = BigramStats::new(tokenizer.vocab_size())?;
     println!("bigram_stats: {:?}", bigram_stats);
+    bigram_stats.observe(&tokens)?;
+    println!("observe: {:?}", bigram_stats);
 
     Ok(())
 }
@@ -124,7 +126,7 @@ fn text_from_input() -> Result<String, io::Error> {
 
     Подэтап         Реализация                  Математика
     0.2.1       пары соседних токенов       последовательности
-    0.2.2       V × V counts                таблицы, индексы
+    0.2.2       V * V counts                таблицы, индексы
     0.2.3       probabilities               дроби, сумма, вероятность
     0.2.4       sampling                    интервалы [0,1)
     0.2.5       deterministic PRNG          псевдослучайность

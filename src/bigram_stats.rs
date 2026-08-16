@@ -9,7 +9,7 @@ use std::fmt;
 /// перехода `current -> next`
 ///
 /// Матрица хранится в одном `Vec<u64>` в row-major порядке
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct BigramStats {
     counts: Vec<u64>,
     vocab_size: usize,
@@ -50,9 +50,20 @@ impl BigramStats {
     ///
     /// # Errors
     ///
-    /// Возвращает ошибку при невалидном `TokenId` или переполнении счётчика
+    /// Возвращает ошибку при невалидном `TokenId` или
+    /// [`BigramStatsError::CountOverflow`] при переполнении счётчика
     pub fn observe(&mut self, tokens: &[TokenId]) -> Result<(), BigramStatsError> {
-        todo!()
+        for window in tokens.windows(2) {
+            let current = window[0];
+            let next = window[1];
+            let index = self.index(current, next)?;
+
+            self.counts[index] = self.counts[index]
+                .checked_add(1)
+                .ok_or(BigramStatsError::CountOverflow { current, next })?;
+        }
+
+        Ok(())
     }
 
     /// Возвращает число наблюдений перехода `current -> next`
@@ -73,6 +84,7 @@ impl BigramStats {
     /// Возвращает ошибку, если:
     /// - `current` не принадлежит vocabulary
     /// - для `current` ещё не наблюдалось ни одного перехода
+    #[allow(unused)]
     pub fn probabilities(&self, current: TokenId) -> Result<Vec<f64>, BigramStatsError> {
         todo!()
     }
@@ -120,22 +132,16 @@ impl BigramStats {
 #[derive(Debug, PartialEq, Eq)]
 pub enum BigramStatsError {
     /// Токен не принадлежит словарю этой статистики
-    TokenOutOfVocabulary {
-        token: TokenId,
-        vocab_size: usize,
-    },
+    TokenOutOfVocabulary { token: TokenId, vocab_size: usize },
     /// Счётчик перехода достиг максимального значения `u64`
-    CountOverflow {
-        current: TokenId,
-        next: TokenId,
-    },
+    CountOverflow { current: TokenId, next: TokenId },
     /// Для токена ещё не наблюдалось исходящих переходов
     NoOutgoingTransitions(TokenId),
     /// Словарь не может быть пустым
     EmptyVocabulary,
     /// Матрица `V * V` не помещается в адресное пространство
     MatrixSizeOverflow,
-    // Индекс ячейки матрицы не помещается в `usize`
+    /// Индекс ячейки матрицы не помещается в `usize`
     MatrixIndexOverflow,
     /// Значение `TokenId` невозможно представить как `usize`
     TokenIndexConversionOverflow,
@@ -196,82 +202,140 @@ impl fmt::Display for BigramStatsError {
 }
 
 #[cfg(test)]
-mod test {
+mod tests {
     use super::*;
 
     #[test]
     fn new_creates_zeroed_counts() {
-        let bigram_stats = BigramStats::new(3).unwrap();
+        let stats = BigramStats::new(3).unwrap();
 
-        assert_eq!(bigram_stats.counts.len(), 3_usize.checked_mul(3).unwrap());
-
-        assert!(bigram_stats.counts.iter().all(|&count| count == 0));
+        assert_eq!(stats.counts.len(), 3_usize.checked_mul(3).unwrap());
+        assert!(stats.counts.iter().all(|&count| count == 0));
     }
 
     #[test]
     fn new_rejects_empty_vocabulary() {
-        let bigram_stats = BigramStats::new(0);
-
-        assert!(
-            matches!(bigram_stats, Err(BigramStatsError::EmptyVocabulary)),
-            "Expected Err(BigramStatsError::EmptyVocabulary), but got {:?}",
-            bigram_stats
-        );
+        assert_eq!(BigramStats::new(0), Err(BigramStatsError::EmptyVocabulary));
     }
 
-    // Проверка правильной раскладки 2 * 2
     #[test]
     fn index_uses_row_major_layout() {
-        let bigram_stats = BigramStats::new(2).unwrap();
-        let t0 = TokenId::from_index(0_usize).unwrap();
-        let t1 = TokenId::from_index(1_usize).unwrap();
+        let t0 = TokenId::from_index(0).unwrap();
+        let t1 = TokenId::from_index(1).unwrap();
+        let stats = BigramStats::new(2).unwrap();
 
-        assert_eq!(bigram_stats.index(t0, t0).unwrap(), 0);
-        assert_eq!(bigram_stats.index(t0, t1).unwrap(), 1);
-        assert_eq!(bigram_stats.index(t1, t0).unwrap(), 2);
-        assert_eq!(bigram_stats.index(t1, t1).unwrap(), 3);
+        assert_eq!(stats.index(t0, t0).unwrap(), 0);
+        assert_eq!(stats.index(t0, t1).unwrap(), 1);
+        assert_eq!(stats.index(t1, t0).unwrap(), 2);
+        assert_eq!(stats.index(t1, t1).unwrap(), 3);
     }
 
     #[test]
-    fn index_reject_invalid_current() {
+    fn index_rejects_invalid_current() {
         let v = 2;
-        let bigram_stats = BigramStats::new(v).unwrap();
-        let current = TokenId::from_index(2_usize).unwrap();
-        let next = TokenId::from_index(0_usize).unwrap();
+        let stats = BigramStats::new(v).unwrap();
+        let current = TokenId::from_index(2).unwrap();
+        let next = TokenId::from_index(0).unwrap();
 
-        // Должен вернуть: TokenOutOfVocabulary
-        assert!(
-            matches!(
-                bigram_stats.index(current, next),
-                Err(BigramStatsError::TokenOutOfVocabulary {
-                    #[allow(unused)]
-                    token: current,
-                    vocab_size: 2_usize,
-                })
-            ),
-            "Expected Err(BigramStatsError::TokenOutOfVocabulary), but got {:?}",
-            bigram_stats.index(current, next)
+        assert_eq!(
+            stats.index(current, next),
+            Err(BigramStatsError::TokenOutOfVocabulary {
+                token: current,
+                vocab_size: 2,
+            })
         );
     }
 
     #[test]
     fn index_reject_invalid_next() {
-        let bigram_stats = BigramStats::new(2).unwrap();
-        let current = TokenId::from_index(0_usize).unwrap();
-        let next = TokenId::from_index(2_usize).unwrap();
+        let stats = BigramStats::new(2).unwrap();
+        let current = TokenId::from_index(0).unwrap();
+        let next = TokenId::from_index(2).unwrap();
 
-        // Должен вернуть: TokenOutOfVocabulary
-        assert!(
-            matches!(
-                bigram_stats.index(current, next),
-                Err(BigramStatsError::TokenOutOfVocabulary {
-                    #[allow(unused)]
-                    token: next,
-                    vocab_size: 2_usize,
-                })
-            ),
-            "Expected Err(BigramStatsError::TokenOutOfVocabulary), but got {:?}",
-            bigram_stats.index(current, next)
+        assert_eq!(
+            stats.index(current, next),
+            Err(BigramStatsError::TokenOutOfVocabulary {
+                token: next,
+                vocab_size: 2_usize,
+            })
+        );
+    }
+
+    #[test]
+    fn observe_counts_bigrams() {
+        let a = TokenId::from_index(0).unwrap();
+        let b = TokenId::from_index(1).unwrap();
+        let tokens = [a, b, b, a];
+        let mut stats = BigramStats::new(2).unwrap();
+
+        stats.observe(&tokens).unwrap();
+
+        assert_eq!(stats.count(a, a).unwrap(), 0);
+        assert_eq!(stats.count(a, b).unwrap(), 1);
+        assert_eq!(stats.count(b, a).unwrap(), 1);
+        assert_eq!(stats.count(b, b).unwrap(), 1);
+    }
+
+    #[test]
+    fn observe_accumulates_counts() {
+        let a = TokenId::from_index(0).unwrap();
+        let b = TokenId::from_index(1).unwrap();
+        let mut stats = BigramStats::new(2).unwrap();
+
+        stats.observe(&[a, b]).unwrap();
+        stats.observe(&[a, b]).unwrap();
+
+        assert_eq!(stats.count(a, b).unwrap(), 2);
+    }
+
+    #[test]
+    fn observe_empty_slice_does_nothing() {
+        let mut stats = BigramStats::new(2).unwrap();
+
+        stats.observe(&[]).unwrap();
+
+        assert!(stats.counts.iter().all(|&count| count == 0));
+    }
+
+    #[test]
+    fn observe_single_token_does_nothing() {
+        let a = TokenId::from_index(0).unwrap();
+        let mut stats = BigramStats::new(2).unwrap();
+
+        stats.observe(&[a]).unwrap();
+
+        assert!(stats.counts.iter().all(|&count| count == 0));
+    }
+
+    #[test]
+    fn observe_rejects_out_of_vocabulary_token() {
+        let a = TokenId::from_index(0).unwrap();
+        let b = TokenId::from_index(2).unwrap();
+        let mut stats = BigramStats::new(2).unwrap();
+
+        assert_eq!(
+            stats.observe(&[a, b]),
+            Err(BigramStatsError::TokenOutOfVocabulary {
+                token: b,
+                vocab_size: stats.vocab_size
+            })
+        );
+    }
+
+    #[test]
+    fn observe_rejects_count_overflow() {
+        let a = TokenId::from_index(0).unwrap();
+        let b = TokenId::from_index(1).unwrap();
+        let mut stats = BigramStats::new(2).unwrap();
+        let index = stats.index(a, b).unwrap();
+        stats.counts[index] = u64::MAX;
+
+        assert_eq!(
+            stats.observe(&[a, b]),
+            Err(BigramStatsError::CountOverflow {
+                current: a,
+                next: b,
+            })
         );
     }
 }
