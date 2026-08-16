@@ -1,4 +1,6 @@
 use rustllm::BigramStats;
+use rustllm::CharTokenizer;
+use rustllm::CliArgs;
 use std::env;
 use std::error::Error;
 use std::fs;
@@ -14,14 +16,14 @@ fn main() {
 
 /// Основная функция, которая выполняет разбор аргументов и обработку текста
 fn run() -> Result<(), Box<dyn Error>> {
-    let cli_args = rustllm::CliArgs::parse(env::args().skip(1))?;
+    let cli_args = CliArgs::parse(env::args().skip(1))?;
     let mut text = cli_args.text.unwrap_or_default();
 
     if let Some(train_path) = cli_args.train {
         text = fs::read_to_string(&train_path)?;
     }
 
-    let tokenizer = rustllm::CharTokenizer::from_corpus(&text)?;
+    let tokenizer = CharTokenizer::from_corpus(&text)?;
     let tokens = tokenizer.encode(&text)?;
 
     println!("Bytes count: {}", text.len());

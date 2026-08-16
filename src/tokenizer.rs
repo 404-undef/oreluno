@@ -19,42 +19,25 @@ use std::fmt;
     мир модели
 */
 
-/// Ошибки токенизации
-#[derive(Debug)]
-pub enum TokenizerError {
-    UnknownTokenId(TokenId),
-    UnknownChar(char),
-    TokenIdPosOverflow,
-    TokenIdToUsizeOverflow,
-}
-
-impl Error for TokenizerError {}
-
-impl fmt::Display for TokenizerError {
-    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::TokenIdPosOverflow => write!(formatter, "Number too large to fit in `TokenId`"),
-            Self::TokenIdToUsizeOverflow => {
-                write!(formatter, "TokenId value too large to fit in `usize`")
-            }
-            Self::UnknownTokenId(arg) => write!(formatter, "Unknown token id `{arg}`"),
-            Self::UnknownChar(arg) => write!(formatter, "Unknown char `{arg}`"),
-        }
-    }
-}
-
-/// Компактный идентификатор токена в vocabulary
+/// Компактный числовой идентификатор токена
 ///
-/// Для CharTokenizer токеном является `char`,
-/// а TokenId хранит его позицию в vocabulary
+/// Значение соответствует позиции токена в vocabulary
+/// Для [`CharTokenizer`] каждый `TokenId` соответствует одному Unicode `char`
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct TokenId(u32);
 
 impl TokenId {
+    /// Создаёт `TokenId` из индекса vocabulary
+    ///
+    /// Возвращает `None`, если `index` не помещается во внутренний `u32`
     pub fn from_index(index: usize) -> Option<Self> {
         u32::try_from(index).ok().map(Self)
     }
 
+    /// Возвращает числовое значение токена как индекс `usize`.
+    ///
+    /// Возвращает `None`, если значение невозможно представить как `usize`
+    /// на текущей платформе
     pub fn index(self) -> Option<usize> {
         usize::try_from(self.0).ok()
     }
@@ -66,16 +49,10 @@ impl fmt::Display for TokenId {
     }
 }
 
-/*
-    TokenId
-    ↓
-    индекс vocabulary
-    ↓
-    char
-*/
-
-/// Character-level tokenizer с vocabulary,
-/// построенным по символам обучающего корпуса
+/// Character-level tokenizer с детерминированным vocabulary
+///
+/// Каждый уникальный Unicode `char` корпуса получает отдельный [`TokenId`].
+/// Идентификаторы назначаются в порядке сортировки символов
 #[derive(Debug, PartialEq, Eq)]
 pub struct CharTokenizer {
     char_to_id: HashMap<char, TokenId>,
@@ -83,26 +60,20 @@ pub struct CharTokenizer {
 }
 
 impl CharTokenizer {
-    /// Возвращает структуру (Vocabulary) содержащую все возможные токены из переданой строки `corpus`
+    /// Строит tokenizer по уникальным символам `corpus`
+    ///
+    /// Символы сортируются перед назначением идентификаторов, поэтому
+    /// одинаковый набор символов всегда создаёт одинаковое vocabulary
+    ///
+    /// # Errors
+    ///
+    /// Возвращает ошибку, если количество уникальных символов
+    /// превышает диапазон, представимый [`TokenId`]
     pub fn from_corpus(corpus: &str) -> Result<Self, TokenizerError> {
-        /*
-            собрали
-            ↓
-            отсортировали
-            ↓
-            убрали дубликаты
-            ↓
-            назначили 0..N
-        */
-
-        // 1. Собираем уникальные символы сразу в отсортированном виде
         let unique_chars: BTreeSet<char> = corpus.chars().collect();
-
-        // 2. Выделяем память ровно под нужное количество элементов
         let mut char_to_id = HashMap::with_capacity(unique_chars.len());
         let mut id_to_char = Vec::with_capacity(unique_chars.len());
 
-        // 3. Заполняем обе структуры за один проход
         for (idx, &ch) in unique_chars.iter().enumerate() {
             let token_id = TokenId::from_index(idx).ok_or(TokenizerError::TokenIdPosOverflow)?;
 
@@ -116,7 +87,14 @@ impl CharTokenizer {
         })
     }
 
-    /// text -> tokens
+    /// Кодирует `text` в последовательность идентификаторов токенов
+    ///
+    /// Порядок токенов совпадает с порядком символов исходного текста
+    ///
+    /// # Errors
+    ///
+    /// Возвращает [`TokenizerError::UnknownChar`], если `text` содержит
+    /// символ, отсутствующий в vocabulary
     pub fn encode(&self, text: &str) -> Result<Vec<TokenId>, TokenizerError> {
         let mut output = Vec::with_capacity(text.len());
 
@@ -132,7 +110,13 @@ impl CharTokenizer {
         Ok(output)
     }
 
-    /// tokens -> text
+    /// Декодирует последовательность токенов обратно в строку.
+    ///
+    /// # Errors
+    ///
+    /// Возвращает:
+    /// - [`TokenizerError::TokenIdToUsizeOverflow`], если значение токена невозможно представить как `usize`
+    /// - [`TokenizerError::UnknownTokenId`], если идентификатор отсутствует в vocabulary
     pub fn decode(&self, tokens: &[TokenId]) -> Result<String, TokenizerError> {
         let mut output = String::with_capacity(tokens.len());
 
@@ -150,8 +134,52 @@ impl CharTokenizer {
         Ok(output)
     }
 
+    /// Возвращает количество токенов в vocabulary
     pub fn vocab_size(&self) -> usize {
         self.id_to_char.len()
+    }
+}
+
+/// Ошибки, возникающие при создании и использовании [`CharTokenizer`]
+#[derive(Debug)]
+pub enum TokenizerError {
+    /// Идентификатор токена отсутствует в vocabulary
+    UnknownTokenId(TokenId),
+    /// Символ отсутствует в vocabulary
+    UnknownChar(char),
+    /// Позиция токена не помещается во внутреннее представление [`TokenId`]
+    TokenIdPosOverflow,
+    /// Значение [`TokenId`] невозможно представить как `usize`
+    TokenIdToUsizeOverflow,
+}
+
+impl Error for TokenizerError {}
+
+impl fmt::Display for TokenizerError {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::UnknownTokenId(token) => {
+                write!(formatter, "Unknown token id `{token}`")
+            }
+
+            Self::UnknownChar(ch) => {
+                write!(formatter, "Character `{ch}` is not present in vocabulary")
+            }
+
+            Self::TokenIdPosOverflow => {
+                write!(
+                    formatter,
+                    "Vocabulary contains more tokens than `TokenId` can represent"
+                )
+            }
+
+            Self::TokenIdToUsizeOverflow => {
+                write!(
+                    formatter,
+                    "Token id cannot be represented as `usize` on this platform"
+                )
+            }
+        }
     }
 }
 
@@ -159,7 +187,6 @@ impl CharTokenizer {
 mod tests {
     use super::*;
 
-    // Вспомогательная функция для проверки round-trip
     fn assert_roundtrip(text: &str) {
         let tokenizer =
             CharTokenizer::from_corpus(text).expect("Failed to create tokenizer from corpus");
@@ -190,7 +217,6 @@ mod tests {
         let tokenizer = CharTokenizer::from_corpus("abc").unwrap();
         let result = tokenizer.encode("abcd");
 
-        // Должен вернуть: UnknownChar('d')
         assert!(
             matches!(result, Err(TokenizerError::UnknownChar('d'))),
             "Expected Err(TokenizerError::UnknownChar('d')), but got {:?}",
@@ -200,13 +226,8 @@ mod tests {
 
     #[test]
     fn deterministic_token_ids_by_alphabet() {
-        // Корпус передан в обратном порядке: 'c', 'b', 'a'
-        let corpus = "cba";
-        let tokenizer = CharTokenizer::from_corpus(corpus).unwrap();
-
-        // Кодируем строку в алфавитном порядке 'a', 'b', 'c'
+        let tokenizer = CharTokenizer::from_corpus("cba").unwrap();
         let tokens = tokenizer.encode("abc").unwrap();
-
         let indices: Vec<usize> = tokens
             .into_iter()
             .map(|token| token.index().unwrap())
