@@ -1,5 +1,3 @@
-#![allow(unused)]
-
 use crate::TokenId;
 use std::error::Error;
 use std::fmt;
@@ -246,6 +244,7 @@ mod test {
             matches!(
                 bigram_stats.index(current, next),
                 Err(BigramStatsError::TokenOutOfVocabulary {
+                    #[allow(unused)]
                     token: current,
                     vocab_size: 2_usize,
                 })
@@ -266,6 +265,7 @@ mod test {
             matches!(
                 bigram_stats.index(current, next),
                 Err(BigramStatsError::TokenOutOfVocabulary {
+                    #[allow(unused)]
                     token: next,
                     vocab_size: 2_usize,
                 })
