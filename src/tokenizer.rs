@@ -141,7 +141,7 @@ impl CharTokenizer {
 }
 
 /// Ошибки, возникающие при создании и использовании [`CharTokenizer`]
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum TokenizerError {
     /// Идентификатор токена отсутствует в vocabulary
     UnknownTokenId(TokenId),
@@ -188,11 +188,9 @@ mod tests {
     use super::*;
 
     fn assert_roundtrip(text: &str) {
-        let tokenizer =
-            CharTokenizer::from_corpus(text).expect("Failed to create tokenizer from corpus");
-
-        let tokens = tokenizer.encode(text).expect("Failed to encode text");
-        let decoded = tokenizer.decode(&tokens).expect("Failed to decode tokens");
+        let tokenizer = CharTokenizer::from_corpus(text).unwrap();
+        let tokens = tokenizer.encode(text).unwrap();
+        let decoded = tokenizer.decode(&tokens).unwrap();
 
         assert_eq!(decoded, text);
     }
@@ -217,11 +215,7 @@ mod tests {
         let tokenizer = CharTokenizer::from_corpus("abc").unwrap();
         let result = tokenizer.encode("abcd");
 
-        assert!(
-            matches!(result, Err(TokenizerError::UnknownChar('d'))),
-            "Expected Err(TokenizerError::UnknownChar('d')), but got {:?}",
-            result
-        );
+        assert_eq!(result, Err(TokenizerError::UnknownChar('d')));
     }
 
     #[test]
@@ -242,9 +236,6 @@ mod tests {
         let tokens = [TokenId(100)];
         let result = tokenizer.decode(&tokens);
 
-        assert!(matches!(
-            result,
-            Err(TokenizerError::UnknownTokenId(TokenId(100)))
-        ));
+        assert_eq!(result, Err(TokenizerError::UnknownTokenId(TokenId(100))));
     }
 }

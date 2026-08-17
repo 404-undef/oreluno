@@ -1,6 +1,8 @@
 use rustllm::BigramStats;
+use rustllm::BigramStatsError;
 use rustllm::CharTokenizer;
 use rustllm::CliArgs;
+use rustllm::TokenId;
 use std::env;
 use std::error::Error;
 use std::fs;
@@ -26,17 +28,66 @@ fn run() -> Result<(), Box<dyn Error>> {
     let tokenizer = CharTokenizer::from_corpus(&text)?;
     let tokens = tokenizer.encode(&text)?;
 
-    println!("Bytes count: {}", text.len());
-    println!("Chars count: {}", text.chars().count());
-    println!("Tokens count: {}", tokens.len());
-    println!("Vocabulary size: {}", tokenizer.vocab_size());
-    println!("Tokens: {:?}", &tokens[..tokens.len().min(100)]);
-    println!("Source text: {}", tokenizer.decode(&tokens)?);
+    print_corpus_info(&text, &tokenizer, &tokens);
 
-    let mut bigram_stats = BigramStats::new(tokenizer.vocab_size())?;
-    println!("bigram_stats: {:?}", bigram_stats);
-    bigram_stats.observe(&tokens)?;
-    println!("observe: {:?}", bigram_stats);
+    println!();
+    println!("Tokens: {:?}", &tokens[..tokens.len().min(100)]);
+    println!("Decoded tokens: {}", tokenizer.decode(&tokens)?);
+
+    let mut stats = BigramStats::new(tokenizer.vocab_size())?;
+    stats.observe(&tokens)?;
+
+    println!();
+    print_bigram_stats(&tokenizer, &stats)?;
+
+    Ok(())
+}
+
+fn print_corpus_info(text: &str, tokenizer: &CharTokenizer, tokens: &[TokenId]) {
+    println!("Corpus:");
+    println!("  bytes: {:>6}", text.len());
+    println!("  chars: {:>6}", text.chars().count());
+    println!("  tokens: {:>5}", tokens.len());
+    println!("  vocabulary: {:>1}", tokenizer.vocab_size());
+}
+
+fn print_bigram_stats(
+    tokenizer: &CharTokenizer,
+    stats: &BigramStats,
+) -> Result<(), Box<dyn Error>> {
+    println!("Bigram transitions:");
+
+    for current_idx in 0..tokenizer.vocab_size() {
+        let current = TokenId::from_index(current_idx)
+            .ok_or("failed to convert vocabulary index to TokenId")?;
+
+        println!("'{}' [{current}]", tokenizer.decode(&[current])?);
+
+        match stats.probabilities(current) {
+            Ok(probabilities) => {
+                for (next_idx, &probability) in probabilities.iter().enumerate() {
+                    let next = TokenId::from_index(next_idx)
+                        .ok_or("failed to convert vocabulary index to TokenId")?;
+
+                    let count = stats.count(current, next)?;
+                    if count == 0 {
+                        continue;
+                    }
+
+                    println!(
+                        "  -> '{}' [{next}]: count={count}, p={probability:.6}",
+                        tokenizer.decode(&[next])?
+                    );
+                }
+            }
+
+            Err(BigramStatsError::NoOutgoingTransitions(_)) => {
+                println!("  no outgoing transitions");
+            }
+
+            Err(error) => return Err(error.into()),
+        }
+    }
 
     Ok(())
 }
@@ -80,49 +131,11 @@ fn text_from_input() -> Result<String, io::Error> {
     7. проверить encode -> decode
 
 
-    "Привет"
-        │
-        ▼
-    CharTokenizer
-        │
-        ▼
-    [TokenId(...), TokenId(...), ...]
-
-
-
     RustLLM Level 0.2 - Statistical Bigram Language Model
     ────────────────────
     Научить RustLLM замечать, какие токены встречаются друг после друга,
     превращать эти наблюдения в вероятности и на их основе предсказывать
     следующий токен
-
-
-        ┌─────────────────────┐
-        │   обучающий текст   │
-        └──────────┬──────────┘
-                   │
-                   ▼
-             CharTokenizer
-                   │
-                   ▼
-           [4, 8, 7, 5, 6, 9]
-                   │
-                   ▼
-           StatisticalBigram
-                   │
-        ┌──────────┴─────────────┐
-        ▼                        ▼
- transition counts         probabilities
-        │                        │
-        └──────────┬─────────────┘
-                   ▼
-           следующий TokenId
-                   │
-                   ▼
-             CharTokenizer
-                   │
-                   ▼
-                 текст
 
     Подэтап         Реализация                  Математика
     0.2.1       пары соседних токенов       последовательности

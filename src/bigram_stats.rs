@@ -84,9 +84,27 @@ impl BigramStats {
     /// Возвращает ошибку, если:
     /// - `current` не принадлежит vocabulary
     /// - для `current` ещё не наблюдалось ни одного перехода
-    #[allow(unused)]
     pub fn probabilities(&self, current: TokenId) -> Result<Vec<f64>, BigramStatsError> {
-        todo!()
+        let current_idx = self.validate_token(current)?;
+        let start = current_idx * self.vocab_size;
+        let end = start + self.vocab_size;
+        let row = &self.counts[start..end];
+
+        let total = row.iter().try_fold(0_u64, |acc, &count| {
+            acc.checked_add(count)
+                .ok_or(BigramStatsError::OutgoingCountOverflow(current))
+        })?;
+
+        if total == 0 {
+            return Err(BigramStatsError::NoOutgoingTransitions(current));
+        }
+
+        let probabilities = row
+            .iter()
+            .map(|&count| count as f64 / total as f64)
+            .collect();
+
+        Ok(probabilities)
     }
 
     /// Возвращает индекс перехода `(current, next)` в плоской row-major матрице
@@ -145,6 +163,8 @@ pub enum BigramStatsError {
     MatrixIndexOverflow,
     /// Значение `TokenId` невозможно представить как `usize`
     TokenIndexConversionOverflow,
+    /// Сумма счётчиков всех исходящих переходов токена не помещается в `u64`
+    OutgoingCountOverflow(TokenId),
 }
 
 impl Error for BigramStatsError {}
@@ -197,6 +217,12 @@ impl fmt::Display for BigramStatsError {
                     "Token id cannot be represented as `usize` on this platform"
                 )
             }
+            Self::OutgoingCountOverflow(token) => {
+                write!(
+                    formatter,
+                    "Total outgoing transition count overflow for token `{token}`"
+                )
+            }
         }
     }
 }
@@ -247,7 +273,7 @@ mod tests {
     }
 
     #[test]
-    fn index_reject_invalid_next() {
+    fn index_rejects_invalid_next() {
         let stats = BigramStats::new(2).unwrap();
         let current = TokenId::from_index(0).unwrap();
         let next = TokenId::from_index(2).unwrap();
@@ -336,6 +362,68 @@ mod tests {
                 current: a,
                 next: b,
             })
+        );
+    }
+
+    #[test]
+    fn probabilities_normalize_counts() {
+        let a = TokenId::from_index(0).unwrap();
+        let b = TokenId::from_index(1).unwrap();
+        let tokens = [a, b, b, a];
+        let mut stats = BigramStats::new(2).unwrap();
+
+        stats.observe(&tokens).unwrap();
+
+        assert_eq!(stats.probabilities(a).unwrap(), &[0.0, 1.0]);
+        assert_eq!(stats.probabilities(b).unwrap(), &[0.5, 0.5]);
+    }
+
+    #[test]
+    fn probabilities_sum_to_one() {
+        let epsilon = 1e-12;
+        let a = TokenId::from_index(0).unwrap();
+        let b = TokenId::from_index(1).unwrap();
+        let c = TokenId::from_index(2).unwrap();
+        let tokens = [a, a, b, a, c];
+        let mut stats = BigramStats::new(3).unwrap();
+
+        stats.observe(&tokens).unwrap();
+        let sum: f64 = stats.probabilities(a).unwrap().iter().sum();
+
+        assert!((sum - 1.0).abs() < epsilon);
+    }
+
+    #[test]
+    fn probabilities_rejects_invalid_token() {
+        let a = TokenId::from_index(0).unwrap();
+        let b = TokenId::from_index(1).unwrap();
+        let c = TokenId::from_index(2).unwrap();
+        let tokens = [a, b, b, a];
+        let mut stats = BigramStats::new(2).unwrap();
+
+        stats.observe(&tokens).unwrap();
+
+        assert_eq!(
+            stats.probabilities(c),
+            Err(BigramStatsError::TokenOutOfVocabulary {
+                token: c,
+                vocab_size: 2
+            })
+        );
+    }
+
+    #[test]
+    fn probabilities_rejects_token_without_outgoing_transitions() {
+        let a = TokenId::from_index(0).unwrap();
+        let b = TokenId::from_index(1).unwrap();
+        let tokens = [a, b];
+        let mut stats = BigramStats::new(2).unwrap();
+
+        stats.observe(&tokens).unwrap();
+
+        assert_eq!(
+            stats.probabilities(b),
+            Err(BigramStatsError::NoOutgoingTransitions(b))
         );
     }
 }
