@@ -1,4 +1,4 @@
-use rustllm::CliArgs;
+use rustllm::{CliArgs, Rng, rng};
 use rustllm::{BigramStats, BigramStatsError};
 use rustllm::{CharTokenizer, TokenId};
 use std::env;
@@ -18,6 +18,8 @@ fn main() {
 fn run() -> Result<(), Box<dyn Error>> {
     let cli_args = CliArgs::parse(env::args().skip(1))?;
     let mut text = cli_args.text.unwrap_or_default();
+    let seed = cli_args.seed.unwrap_or_default();
+    
 
     if let Some(train_path) = cli_args.train {
         text = fs::read_to_string(&train_path)?;
@@ -37,6 +39,14 @@ fn run() -> Result<(), Box<dyn Error>> {
 
     println!();
     print_bigram_stats(&tokenizer, &stats)?;
+
+    println!();
+    let mut rng = Rng::new(seed);
+    println!("seed: {seed}");
+    println!("random: {}", rng.next_u64());
+    println!("random: {}", rng.next_u64());
+    println!("random: {}", rng.next_u64());
+    println!("random: {}", rng.next_u64());
 
     Ok(())
 }

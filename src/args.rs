@@ -2,43 +2,12 @@
 
 use std::{error::Error, path::PathBuf};
 
-/// Ошибка разбора аргументов локального импортера
-#[derive(Debug, PartialEq, Eq)]
-pub enum CliArgsError {
-    /// Обязательный именованный аргумент не передан
-    #[allow(unused)]
-    MissingArg(&'static str),
-    /// После имени аргумента отсутствует его значение
-    MissingValue(&'static str),
-    /// Передан неизвестный именованный аргумент
-    UnknownArg(String),
-    /// Пользователь запросил справку вместо запуска импорта
-    Usage,
-}
-
-/// Реализуем Error для CliArgsError, чтобы можно было использовать его в Result
-impl Error for CliArgsError {}
-
-/// Реализуем Display для CliArgsError, чтобы можно было красиво выводить ошибки пользователю
-impl std::fmt::Display for CliArgsError {
-    /// Форматирует ошибку разбора аргументов для отображения пользователю
-    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::MissingArg(arg) => write!(formatter, "Error: missing required argument `{arg}`"),
-            Self::MissingValue(arg) => {
-                write!(formatter, "Error: missing value for argument `{arg}`")
-            }
-            Self::UnknownArg(arg) => write!(formatter, "Error: unknown argument `{arg}`"),
-            Self::Usage => write!(formatter, "{}", usage()),
-        }
-    }
-}
-
 /// Структура для хранения разобранных аргументов
 #[derive(Debug, PartialEq, Eq)]
 pub struct CliArgs {
     pub text: Option<String>,
     pub train: Option<PathBuf>,
+    pub seed: Option<u64>,
 }
 
 impl CliArgs {
@@ -46,6 +15,7 @@ impl CliArgs {
     pub fn parse(raw_args: impl Iterator<Item = String>) -> Result<CliArgs, CliArgsError> {
         let mut text = None;
         let mut train = None;
+        let mut seed = None;
         let mut args = raw_args.peekable();
 
         while let Some(arg) = args.next() {
@@ -63,12 +33,26 @@ impl CliArgs {
                         train = Some(PathBuf::from(value));
                     }
                 }
+                "--seed" => {
+                    let value = next_value(&mut args, "seed")?;
+
+                    let parsed_seed =
+                        value
+                            .parse::<u64>()
+                            .map_err(|_| CliArgsError::InvalidValue {
+                                arg: "seed",
+                                value,
+                                expected: "u64",
+                            })?;
+
+                    seed = Some(parsed_seed);
+                }
                 "--help" | "-h" => return Err(CliArgsError::Usage),
                 _ => return Err(CliArgsError::UnknownArg(arg)),
             }
         }
 
-        Ok(Self { text, train })
+        Ok(Self { text, train, seed })
     }
 }
 
@@ -94,5 +78,82 @@ fn required_arg<T>(value: Option<T>, name: &'static str) -> Result<T, CliArgsErr
 
 // Возвращает строку с инструкцией по использованию программы
 fn usage() -> &'static str {
-    "usage: rustllm --text <text> | --train <path>"
+    "\
+RustLLM
+
+Usage:
+    rustllm --text <text> [options]
+    rustllm --train <path> [options]
+
+Modes:
+    --text <text>
+        Run the model with the provided input text
+
+    --train <path>
+        Train the model using data from the specified file
+
+Options:
+    --seed <u64>
+        Seed for the pseudorandom number generator
+        Default: 0
+
+    -h, --help
+        Show this help message
+"
+}
+
+/// Ошибка разбора аргументов локального импортера
+#[derive(Debug, PartialEq, Eq)]
+pub enum CliArgsError {
+    InvalidValue {
+        value: String,
+        arg: &'static str,
+        expected: &'static str,
+    },
+
+    /// Обязательный именованный аргумент не передан
+    MissingArg(&'static str),
+
+    /// После имени аргумента отсутствует его значение
+    MissingValue(&'static str),
+
+    /// Передан неизвестный именованный аргумент
+    UnknownArg(String),
+
+    /// Пользователь запросил справку вместо запуска импорта
+    Usage,
+}
+
+/// Реализуем Error для CliArgsError, чтобы можно было использовать его в Result
+impl Error for CliArgsError {}
+
+/// Реализуем Display для CliArgsError, чтобы можно было красиво выводить ошибки пользователю
+impl std::fmt::Display for CliArgsError {
+    /// Форматирует ошибку разбора аргументов для отображения пользователю
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::InvalidValue {
+                value,
+                arg,
+                expected,
+            } => {
+                write!(
+                    formatter,
+                    "invalid value `{value}` for argument `{arg}`: expected {expected}"
+                )
+            }
+            Self::MissingArg(arg) => {
+                write!(formatter, "missing required argument `{arg}`")
+            }
+            Self::MissingValue(arg) => {
+                write!(formatter, "missing value for argument `{arg}`")
+            }
+            Self::UnknownArg(arg) => {
+                write!(formatter, "unknown argument `{arg}`")
+            }
+            Self::Usage => {
+                write!(formatter, "{}", usage())
+            }
+        }
+    }
 }
