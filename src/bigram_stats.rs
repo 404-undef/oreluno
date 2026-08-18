@@ -151,18 +151,25 @@ impl BigramStats {
 pub enum BigramStatsError {
     /// Токен не принадлежит словарю этой статистики
     TokenOutOfVocabulary { token: TokenId, vocab_size: usize },
+
     /// Счётчик перехода достиг максимального значения `u64`
     CountOverflow { current: TokenId, next: TokenId },
+
     /// Для токена ещё не наблюдалось исходящих переходов
     NoOutgoingTransitions(TokenId),
+
     /// Словарь не может быть пустым
     EmptyVocabulary,
+
     /// Матрица `V * V` не помещается в адресное пространство
     MatrixSizeOverflow,
+
     /// Индекс ячейки матрицы не помещается в `usize`
     MatrixIndexOverflow,
+
     /// Значение `TokenId` невозможно представить как `usize`
     TokenIndexConversionOverflow,
+
     /// Сумма счётчиков всех исходящих переходов токена не помещается в `u64`
     OutgoingCountOverflow(TokenId),
 }
@@ -217,6 +224,7 @@ impl fmt::Display for BigramStatsError {
                     "Token id cannot be represented as `usize` on this platform"
                 )
             }
+
             Self::OutgoingCountOverflow(token) => {
                 write!(
                     formatter,

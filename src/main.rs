@@ -1,8 +1,6 @@
-use rustllm::BigramStats;
-use rustllm::BigramStatsError;
-use rustllm::CharTokenizer;
 use rustllm::CliArgs;
-use rustllm::TokenId;
+use rustllm::{BigramStats, BigramStatsError};
+use rustllm::{CharTokenizer, TokenId};
 use std::env;
 use std::error::Error;
 use std::fs;
