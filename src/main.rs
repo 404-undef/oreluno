@@ -1,25 +1,36 @@
-use rustllm::{CliArgs, Rng, rng};
+use rustllm::Rng;
 use rustllm::{BigramStats, BigramStatsError};
 use rustllm::{CharTokenizer, TokenId};
+use rustllm::{CliArgs, CliArgsError, usage};
 use std::env;
 use std::error::Error;
 use std::fs;
 use std::io::{self, Write};
 
 fn main() {
-    // Разбираем аргументы командной строки и обрабатываем текст
-    if let Err(e) = run() {
-        eprintln!("Error: {e}");
-        std::process::exit(1);
+    match CliArgs::parse(env::args().skip(1)) {
+        Err(CliArgsError::Usage) => {
+            println!("{}", usage());
+        }
+
+        Err(error) => {
+            eprintln!("Error: {error}");
+            std::process::exit(1);
+        }
+
+        Ok(cli_args) => {
+            if let Err(error) = run(cli_args) {
+                eprintln!("Error: {error}");
+                std::process::exit(1);
+            }
+        }
     }
 }
 
 /// Основная функция, которая выполняет разбор аргументов и обработку текста
-fn run() -> Result<(), Box<dyn Error>> {
-    let cli_args = CliArgs::parse(env::args().skip(1))?;
+fn run(cli_args: CliArgs) -> Result<(), Box<dyn Error>> {
     let mut text = cli_args.text.unwrap_or_default();
     let seed = cli_args.seed.unwrap_or_default();
-    
 
     if let Some(train_path) = cli_args.train {
         text = fs::read_to_string(&train_path)?;

@@ -77,7 +77,7 @@ fn required_arg<T>(value: Option<T>, name: &'static str) -> Result<T, CliArgsErr
 }
 
 // Возвращает строку с инструкцией по использованию программы
-fn usage() -> &'static str {
+pub fn usage() -> &'static str {
     "\
 RustLLM
 
