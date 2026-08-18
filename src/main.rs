@@ -54,10 +54,10 @@ fn run(cli_args: CliArgs) -> Result<(), Box<dyn Error>> {
     println!();
     let mut rng = Rng::new(seed);
     println!("seed: {seed}");
-    println!("random: {}", rng.next_u64());
-    println!("random: {}", rng.next_u64());
-    println!("random: {}", rng.next_u64());
-    println!("random: {}", rng.next_u64());
+    println!("random: {}", rng.next_f64());
+    println!("random: {}", rng.next_f64());
+    println!("random: {}", rng.next_f64());
+    println!("random: {}", rng.next_f64());
 
     Ok(())
 }
