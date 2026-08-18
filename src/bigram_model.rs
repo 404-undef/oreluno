@@ -1,8 +1,9 @@
-use crate::BigramStats;
 use crate::RandomSource;
 use crate::TokenId;
-use crate::sample_index;
-use std::{error::Error, fmt};
+use crate::{BigramStats, BigramStatsError};
+use crate::{SamplingError, sample_index};
+use std::error::Error;
+use std::fmt;
 
 /*
     current TokenId
@@ -23,10 +24,14 @@ use std::{error::Error, fmt};
 */
 
 pub struct BigramModel {
-    stats: crate::BigramStats,
+    stats: BigramStats,
 }
 
 impl BigramModel {
+    pub fn new(stats: BigramStats) -> Self {
+        Self { stats }
+    }
+
     pub fn next_token(
         &self,
         current: TokenId,
@@ -40,19 +45,45 @@ impl BigramModel {
     }
 }
 
-/// Ошибки BigramStats
+/// Ошибки, возникающие при работе bigram-модели
+///
+/// Объединяет ошибки получения статистики переходов,
+/// выбора токена из распределения вероятностей и
+/// преобразования индекса в [`TokenId`]
 #[derive(Debug)]
 pub enum BigramModelError {
-    // probabilities(current)  -> ?
-    // sample_index(...)       -> ?
-    // TokenId::from_index()   -> ?
+    Stats(BigramStatsError),
+    Sampling(SamplingError),
+    InvalidTokenIndex(usize),
+}
+
+impl From<BigramStatsError> for BigramModelError {
+    fn from(error: BigramStatsError) -> Self {
+        Self::Stats(error)
+    }
+}
+
+impl From<SamplingError> for BigramModelError {
+    fn from(error: SamplingError) -> Self {
+        Self::Sampling(error)
+    }
 }
 
 impl Error for BigramModelError {}
 
 impl fmt::Display for BigramModelError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        todo!()
+        match self {
+            Self::Stats(error) => {
+                write!(formatter, "bigram statistics error: {error}")
+            }
+            Self::Sampling(error) => {
+                write!(formatter, "sampling error: {error}")
+            }
+            Self::InvalidTokenIndex(index) => {
+                write!(formatter, "invalid token index: {index}")
+            }
+        }
     }
 }
 
