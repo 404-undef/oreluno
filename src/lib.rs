@@ -6,6 +6,7 @@ pub mod sampling;
 pub mod tokenizer;
 
 pub use args::{CliArgs, CliArgsError, usage};
+pub use bigram_model::{BigramModel, BigramModelError};
 pub use bigram_stats::{BigramStats, BigramStatsError};
 pub use rng::{RandomSource, Rng};
 pub use sampling::{SamplingError, sample_index};

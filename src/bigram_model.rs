@@ -1,3 +1,20 @@
+//! Bigram-модель для выбора следующего токена.
+//!
+//! Модель связывает статистику переходов, источник
+//! псевдослучайных значений и sampling:
+//!
+//! ```text
+//! current TokenId
+//!     ↓
+//! BigramStats::probabilities(current)
+//!     ↓
+//! RandomSource::next_f64()
+//!     ↓
+//! sample_index(...)
+//!     ↓
+//! next TokenId
+//! ```
+
 use crate::RandomSource;
 use crate::TokenId;
 use crate::{BigramStats, BigramStatsError};
@@ -5,16 +22,32 @@ use crate::{SamplingError, sample_index};
 use std::error::Error;
 use std::fmt;
 
-
+/// Bigram-модель, выбирающая следующий токен
+/// на основе статистики переходов между токенами
+///
+/// Модель хранит [`BigramStats`] и использует внешний
+/// [`RandomSource`] для случайного выбора следующего токена
 pub struct BigramModel {
     stats: BigramStats,
 }
 
 impl BigramModel {
+    /// Создаёт bigram-модель из готовой статистики переходов
     pub fn new(stats: BigramStats) -> Self {
         Self { stats }
     }
 
+    /// Выбирает следующий токен для заданного текущего токена
+    ///
+    /// Получает распределение вероятностей из [`BigramStats`],
+    /// получает случайное значение из [`RandomSource`] и выполняет sampling
+    ///
+    /// # Errors
+    ///
+    /// Возвращает [`BigramModelError`], если:
+    /// - не удалось получить распределение вероятностей
+    /// - sampling завершился ошибкой
+    /// - выбранный индекс невозможно преобразовать в [`TokenId`]
     pub fn next_token(
         &self,
         current: TokenId,
@@ -33,8 +66,13 @@ impl BigramModel {
 /// преобразования индекса в [`TokenId`]
 #[derive(Debug)]
 pub enum BigramModelError {
+    /// Ошибка при работе со статистикой bigram-переходов
     Stats(BigramStatsError),
+
+    /// Ошибка при выборе токена из распределения вероятностей
     Sampling(SamplingError),
+
+    /// Выбранный индекс невозможно представить как [`TokenId`]
     InvalidTokenIndex(usize),
 }
 

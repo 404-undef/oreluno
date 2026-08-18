@@ -51,14 +51,6 @@ fn run(cli_args: CliArgs) -> Result<(), Box<dyn Error>> {
     println!();
     print_bigram_stats(&tokenizer, &stats)?;
 
-    println!();
-    let mut rng = Rng::new(seed);
-    println!("seed: {seed}");
-    println!("random: {}", rng.next_f64());
-    println!("random: {}", rng.next_f64());
-    println!("random: {}", rng.next_f64());
-    println!("random: {}", rng.next_f64());
-
     Ok(())
 }
 

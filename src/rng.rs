@@ -9,9 +9,9 @@
 //! [`RandomSource`] задаёт минимальный контракт источника случайных
 //! значений, который позволяет в дальнейшем подменять реализацию RNG
 
-const GOLDEN_GAMMA: u64 = 0x9E3779B97F4A7C15;
-const MIX_MULTIPLIER_1: u64 = 0xBF58476D1CE4E5B9;
-const MIX_MULTIPLIER_2: u64 = 0x94D049BB133111EB;
+pub const GOLDEN_GAMMA: u64 = 0x9E3779B97F4A7C15;
+pub const MIX_MULTIPLIER_1: u64 = 0xBF58476D1CE4E5B9;
+pub const MIX_MULTIPLIER_2: u64 = 0x94D049BB133111EB;
 
 /// Детерминированный генератор псевдослучайных чисел на основе SplitMix64
 ///
