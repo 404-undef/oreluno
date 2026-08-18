@@ -1,42 +1,41 @@
-#![allow(unused)]
-
+use crate::BigramStats;
+use crate::RandomSource;
+use crate::TokenId;
+use crate::sample_index;
 use std::{error::Error, fmt};
 
-use crate::TokenId;
-
 /*
-    TokenId
+    current TokenId
         ↓
-    transition counts
+    BigramStats::probabilities(current)
         ↓
-    probabilities
+    распределение вероятностей
+        ↓
+    RandomSource::next_f64()
+        ↓
+    sample_index(...)
+        ↓
+    next TokenId
+        ↓
+    он становится новым current
+        ↓
+    повтор
 */
 
-// weights
-// forward()
-// loss()
-// train_step()
-
-struct BigramModel {
-    counts: Vec<u64>,
-    weights: Vec<f32>,
-    vocab_size: usize,
+pub struct BigramModel {
+    stats: crate::BigramStats,
 }
 
 impl BigramModel {
-    pub fn new(vocab_size: usize) -> Result<Self, BigramModelError> {
-        todo!()
-    }
-
-    fn train(&mut self, tokens: &[TokenId]) -> Result<(), BigramModelError> {
-        todo!()
-    }
-
-    fn count(&self, current: TokenId, next: TokenId) -> Result<u64, BigramModelError> {
-        todo!()
-    }
-
-    fn probabilities(&self, current: TokenId) -> Result<Vec<f64>, BigramModelError> {
+    pub fn next_token(
+        &self,
+        current: TokenId,
+        rng: &mut impl RandomSource,
+    ) -> Result<TokenId, BigramModelError> {
+        // 1. probabilities(current)
+        // 2. rng.next_f64()
+        // 3. sample_index(...)
+        // 4. usize → TokenId
         todo!()
     }
 }
@@ -44,7 +43,9 @@ impl BigramModel {
 /// Ошибки BigramStats
 #[derive(Debug)]
 pub enum BigramModelError {
-    
+    // probabilities(current)  -> ?
+    // sample_index(...)       -> ?
+    // TokenId::from_index()   -> ?
 }
 
 impl Error for BigramModelError {}
