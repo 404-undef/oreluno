@@ -24,19 +24,22 @@ pub fn sample_index(probabilities: &[f64], random: f64) -> Result<usize, Samplin
         return Err(SamplingError::InvalidRandomValue(random));
     }
 
+    let mut sum = 0.0;
+
     for (index, &value) in probabilities.iter().enumerate() {
         if !value.is_finite() || !(0.0..=1.0).contains(&value) {
             return Err(SamplingError::InvalidProbability { index, value });
         }
+
+        sum += value;
     }
 
-    let sum: f64 = probabilities.iter().sum();
     if (sum - 1.0).abs() >= EPSILON {
         return Err(SamplingError::InvalidProbabilitySum(sum));
     }
 
     let mut cumulative = 0.0;
-    for (index, value) in probabilities.iter().enumerate() {
+    for (index, &value) in probabilities.iter().enumerate() {
         cumulative += value;
         if random < cumulative {
             return Ok(index);
