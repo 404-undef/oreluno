@@ -60,7 +60,7 @@ fn run(cli_args: CliArgs) -> Result<(), Box<dyn Error>> {
         println!();
 
         let start = *tokens
-            .first()
+            .last()
             .ok_or("cannot generate from an empty token sequence")?;
 
         let generated_tokens = model.generate(start, length, &mut rng)?;
@@ -144,4 +144,56 @@ fn text_from_input() -> Result<String, io::Error> {
         0.6     Training + validation                 обучение модели
         0.7     Generation + checkpoint               inference, sampling
     └─────────────────────────────────────────────────────────────────────────────┘
+
+    LEVEL 0
+    Bigram / базовые принципы ML
+        ↓
+    LEVEL 1
+    Tensor Core
+        ↓
+    LEVEL 2
+    Autograd
+        ↓
+    LEVEL 3
+    Neural Networks / MLP
+        ↓
+    LEVEL 4
+    Self-Attention
+        ↓
+    LEVEL 5
+    Transformer Block
+        ↓
+    LEVEL 6
+    Tiny GPT
+        ↓
+    LEVEL 7
+    Training / Data / Tokenizer stack
+        ↓
+    LEVEL 8
+    CPU optimization
+        ↓
+    LEVEL 9
+    GPU backend
+        ↓
+    LEVEL 10+
+    General-purpose ML Framework
+    ├── LLM
+    ├── Vision
+    ├── Multimodal
+    ├── Quantization
+    ├── Distributed
+    ├── Serving
+    └── ...
+
+
+    0.3 — Trainable Bigram Language Model
+    ─────────────────────────────────────
+    0.3.1 — Training examples
+    0.3.2 — Weight matrix и logits
+    0.3.3 — Softmax
+    0.3.4 — Negative Log-Likelihood / Cross-Entropy
+    0.3.5 — Градиенты вручную
+    0.3.6 — Gradient Descent
+    0.3.7 — Training loop
+    0.3.8 — Сравнение statistical vs trainable bigram
 */
