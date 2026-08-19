@@ -1,8 +1,10 @@
-use rustllm::BigramModel;
-use rustllm::Rng;
-use rustllm::{BigramStats, BigramStatsError};
-use rustllm::{CharTokenizer, TokenId};
-use rustllm::{CliArgs, CliArgsError, usage};
+mod cli;
+
+use cli::{CliArgs, CliArgsError, usage};
+use rustllm::bigram::{BigramStats, BigramStatsError};
+use rustllm::model::BigramModel;
+use rustllm::rng::Rng;
+use rustllm::tokenizer::{CharTokenizer, TokenId};
 use std::env;
 use std::error::Error;
 use std::fs;
@@ -133,67 +135,36 @@ fn text_from_input() -> Result<String, io::Error> {
 }
 
 /*
-    ┌─────────────────────────────────────────────────────────────────────────────┐
-    │  Этап   │         Что делаем	                │     Что изучаем             │
-    └─────────────────────────────────────────────────────────────────────────────┘
-        0.1     Corpus + character tokenizer          tokens, vocabulary, TokenId
-        0.2     статистическая Markov/bigram модель   вероятность
-        0.3     Матрица весов                         parameters, logits
-        0.4     Softmax + Cross Entropy               probability, loss
-        0.5     Ручной gradient descent               gradient, learning rate
-        0.6     Training + validation                 обучение модели
-        0.7     Generation + checkpoint               inference, sampling
-    └─────────────────────────────────────────────────────────────────────────────┘
+Roadmap проекта
 
-    LEVEL 0
-    Bigram / базовые принципы ML
-        ↓
-    LEVEL 1
-    Tensor Core
-        ↓
-    LEVEL 2
-    Autograd
-        ↓
-    LEVEL 3
-    Neural Networks / MLP
-        ↓
-    LEVEL 4
-    Self-Attention
-        ↓
-    LEVEL 5
-    Transformer Block
-        ↓
-    LEVEL 6
-    Tiny GPT
-        ↓
-    LEVEL 7
-    Training / Data / Tokenizer stack
-        ↓
-    LEVEL 8
-    CPU optimization
-        ↓
-    LEVEL 9
-    GPU backend
-        ↓
-    LEVEL 10+
-    General-purpose ML Framework
-    ├── LLM
-    ├── Vision
-    ├── Multimodal
-    ├── Quantization
-    ├── Distributed
-    ├── Serving
-    └── ...
+Level 0 — Bigram ML с нуля
+  0.1 — Corpus + Tokenizer
+  0.2 — Statistical Bigram Model
+  0.3 — Training Data + Weight Matrix + Logits
+  0.4 — Softmax + Cross-Entropy
+  0.5 — Manual Gradients + Gradient Descent
+  0.6 — Training + Validation
+  0.7 — Generation + Serialization
+  0.8 — Финализация Level 0
 
+После Level 0:
+  - финальный commit/tag;
+  - переименование проекта;
+  - переход на Cargo workspace;
+  - начало универсального ML-framework.
 
-    0.3 — Trainable Bigram Language Model
-    ─────────────────────────────────────
-    0.3.1 — Training examples
-    0.3.2 — Weight matrix и logits
-    0.3.3 — Softmax
-    0.3.4 — Negative Log-Likelihood / Cross-Entropy
-    0.3.5 — Градиенты вручную
-    0.3.6 — Gradient Descent
-    0.3.7 — Training loop
-    0.3.8 — Сравнение statistical vs trainable bigram
+Level 1 — Tensor Core
+Level 2 — Autograd
+Level 3 — Neural Network Core
+Level 4 — Self-Attention
+Level 5 — Transformer
+Level 6 — Tiny GPT / Language Model
+Level 7 — Data + Training Infrastructure
+Level 8 — CPU Optimization
+Level 9 — GPU / Accelerator Backend
+Level 10+ — General-Purpose ML Framework
+            (LLM, Vision, Multimodal и другие направления)
+
+Текущая точка:
+  Level 0 → 0.3
 */

@@ -15,10 +15,10 @@
 //! next TokenId
 //! ```
 
-use crate::RandomSource;
-use crate::TokenId;
-use crate::{BigramStats, BigramStatsError};
-use crate::{SamplingError, sample_index};
+use crate::bigram::{BigramStats, BigramStatsError};
+use crate::rng::RandomSource;
+use crate::sampling::{SamplingError, sample_index};
+use crate::tokenizer::TokenId;
 use std::error::Error;
 use std::fmt;
 

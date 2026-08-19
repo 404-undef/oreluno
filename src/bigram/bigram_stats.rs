@@ -1,4 +1,4 @@
-use crate::TokenId;
+use crate::tokenizer::TokenId;
 use std::error::Error;
 use std::fmt;
 
