@@ -2,5 +2,6 @@
 name = "oreluno"
 version = "0.0.3"
 edition = "2024"
+license = "PolyForm-Noncommercial-1.0.0"
 
 [dependencies]
