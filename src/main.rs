@@ -32,6 +32,7 @@ fn main() {
 fn run(cli_args: CliArgs) -> Result<(), Box<dyn Error>> {
     let mut text = cli_args.text.unwrap_or_default();
     let seed = cli_args.seed.unwrap_or_default();
+    let length = cli_args.length.unwrap_or(0);
 
     if let Some(train_path) = cli_args.train {
         text = fs::read_to_string(&train_path)?;
@@ -55,14 +56,17 @@ fn run(cli_args: CliArgs) -> Result<(), Box<dyn Error>> {
     println!();
     let model = BigramModel::new(stats);
     let mut rng = Rng::new(seed);
-    
+
     let start = *tokens
         .first()
         .ok_or("cannot generate from an empty token sequence")?;
 
-    let generated_tokens = model.generate(start, 32, &mut rng)?;
+    if length > 0 {
+        let generated_tokens = model.generate(start, length, &mut rng)?;
+        let generated = tokenizer.decode(&generated_tokens)?;
 
-    println!("Generated: `{}`", tokenizer.decode(&generated_tokens)?);
+        println!("Generated: `{generated}`");
+    }
 
     Ok(())
 }

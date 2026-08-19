@@ -1,6 +1,7 @@
-//! Реализует разбор аргументов командной строки для локального импортера
+//! Реализует разбор аргументов командной строки
 
-use std::{error::Error, path::PathBuf};
+use std::error::Error;
+use std::path::PathBuf;
 
 /// Структура для хранения разобранных аргументов
 #[derive(Debug, PartialEq, Eq)]
@@ -8,6 +9,7 @@ pub struct CliArgs {
     pub text: Option<String>,
     pub train: Option<PathBuf>,
     pub seed: Option<u64>,
+    pub length: Option<usize>,
 }
 
 impl CliArgs {
@@ -16,6 +18,7 @@ impl CliArgs {
         let mut text = None;
         let mut train = None;
         let mut seed = None;
+        let mut length = None;
         let mut args = raw_args.peekable();
 
         while let Some(arg) = args.next() {
@@ -47,12 +50,31 @@ impl CliArgs {
 
                     seed = Some(parsed_seed);
                 }
+                "--length" => {
+                    let value = next_value(&mut args, "length")?;
+
+                    let parsed_length =
+                        value
+                            .parse::<usize>()
+                            .map_err(|_| CliArgsError::InvalidValue {
+                                arg: "length",
+                                value,
+                                expected: "usize",
+                            })?;
+
+                    length = Some(parsed_length);
+                }
                 "--help" | "-h" => return Err(CliArgsError::Usage),
                 _ => return Err(CliArgsError::UnknownArg(arg)),
             }
         }
 
-        Ok(Self { text, train, seed })
+        Ok(Self {
+            text,
+            train,
+            seed,
+            length,
+        })
     }
 }
 
@@ -97,12 +119,16 @@ Options:
         Seed for the pseudorandom number generator
         Default: 0
 
+    --length <usize>
+        Number of tokens to generate.
+        Default: 0
+
     -h, --help
         Show this help message
 "
 }
 
-/// Ошибка разбора аргументов локального импортера
+/// Ошибка разбора аргументов командной строки
 #[derive(Debug, PartialEq, Eq)]
 pub enum CliArgsError {
     InvalidValue {
@@ -120,7 +146,7 @@ pub enum CliArgsError {
     /// Передан неизвестный именованный аргумент
     UnknownArg(String),
 
-    /// Пользователь запросил справку вместо запуска импорта
+    /// Пользователь запросил справку вместо запуска
     Usage,
 }
 
