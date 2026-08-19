@@ -113,6 +113,7 @@ Modes:
 
     --train <path>
         Train the model using data from the specified file
+        Takes precedence over --text when both are provided
 
 Options:
     --seed <u64>
@@ -181,5 +182,132 @@ impl std::fmt::Display for CliArgsError {
                 write!(formatter, "{}", usage())
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn parse(args: &[&str]) -> Result<CliArgs, CliArgsError> {
+        CliArgs::parse(args.iter().map(|arg| arg.to_string()))
+    }
+
+    #[test]
+    fn parses_text() {
+        let args = parse(&["--text", "abba"]).unwrap();
+
+        assert_eq!(args.text, Some("abba".to_string()));
+        assert_eq!(args.train, None);
+    }
+
+    #[test]
+    fn parses_empty_text() {
+        let args = parse(&["--text"]).unwrap();
+
+        assert_eq!(args.text, Some(String::new()));
+    }
+
+    #[test]
+    fn parses_train_path() {
+        let args = parse(&["--train", "data/corpus.txt"]).unwrap();
+
+        assert_eq!(args.train, Some(PathBuf::from("data/corpus.txt")));
+    }
+
+    #[test]
+    fn parses_seed() {
+        let args = parse(&["--seed", "12345"]).unwrap();
+
+        assert_eq!(args.seed, Some(12345));
+    }
+
+    #[test]
+    fn parses_length() {
+        let args = parse(&["--length", "32"]).unwrap();
+
+        assert_eq!(args.length, Some(32));
+    }
+
+    #[test]
+    fn accepts_zero_length() {
+        let args = parse(&["--length", "0"]).unwrap();
+
+        assert_eq!(args.length, Some(0));
+    }
+
+    #[test]
+    fn parses_all_options_together() {
+        let args = parse(&[
+            "--text",
+            "abba",
+            "--train",
+            "data/corpus.txt",
+            "--seed",
+            "42",
+            "--length",
+            "10",
+        ])
+        .unwrap();
+
+        assert_eq!(args.text, Some("abba".to_string()));
+        assert_eq!(args.train, Some(PathBuf::from("data/corpus.txt")));
+        assert_eq!(args.seed, Some(42));
+        assert_eq!(args.length, Some(10));
+    }
+
+    #[test]
+    fn rejects_invalid_seed() {
+        let result = parse(&["--seed", "abc"]);
+
+        assert_eq!(
+            result,
+            Err(CliArgsError::InvalidValue {
+                arg: "seed",
+                value: "abc".to_string(),
+                expected: "u64",
+            })
+        );
+    }
+
+    #[test]
+    fn rejects_invalid_length() {
+        let result = parse(&["--length", "abc"]);
+
+        assert_eq!(
+            result,
+            Err(CliArgsError::InvalidValue {
+                arg: "length",
+                value: "abc".to_string(),
+                expected: "usize",
+            })
+        );
+    }
+
+    #[test]
+    fn rejects_missing_seed_value() {
+        assert_eq!(parse(&["--seed"]), Err(CliArgsError::MissingValue("seed")));
+    }
+
+    #[test]
+    fn rejects_missing_length_value() {
+        assert_eq!(
+            parse(&["--length"]),
+            Err(CliArgsError::MissingValue("length"))
+        );
+    }
+
+    #[test]
+    fn rejects_unknown_argument() {
+        assert_eq!(
+            parse(&["--unknown"]),
+            Err(CliArgsError::UnknownArg("--unknown".to_string()))
+        );
+    }
+
+    #[test]
+    fn help_returns_usage() {
+        assert_eq!(parse(&["--help"]), Err(CliArgsError::Usage));
+        assert_eq!(parse(&["-h"]), Err(CliArgsError::Usage));
     }
 }

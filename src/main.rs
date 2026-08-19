@@ -28,15 +28,15 @@ fn main() {
     }
 }
 
-/// Основная функция, которая выполняет разбор аргументов и обработку текста
+/// Выполняет основной pipeline LM с уже разобранными аргументами CLI
 fn run(cli_args: CliArgs) -> Result<(), Box<dyn Error>> {
-    let mut text = cli_args.text.unwrap_or_default();
+    let text = match (cli_args.train, cli_args.text) {
+        (Some(path), _) => fs::read_to_string(path)?,
+        (None, Some(text)) => text,
+        (None, None) => String::new(),
+    };
     let seed = cli_args.seed.unwrap_or_default();
     let length = cli_args.length.unwrap_or(0);
-
-    if let Some(train_path) = cli_args.train {
-        text = fs::read_to_string(&train_path)?;
-    }
 
     let tokenizer = CharTokenizer::from_corpus(&text)?;
     let tokens = tokenizer.encode(&text)?;
@@ -53,15 +53,16 @@ fn run(cli_args: CliArgs) -> Result<(), Box<dyn Error>> {
     println!();
     print_bigram_stats(&tokenizer, &stats)?;
 
-    println!();
     let model = BigramModel::new(stats);
     let mut rng = Rng::new(seed);
 
-    let start = *tokens
-        .first()
-        .ok_or("cannot generate from an empty token sequence")?;
-
     if length > 0 {
+        println!();
+
+        let start = *tokens
+            .first()
+            .ok_or("cannot generate from an empty token sequence")?;
+
         let generated_tokens = model.generate(start, length, &mut rng)?;
         let generated = tokenizer.decode(&generated_tokens)?;
 
