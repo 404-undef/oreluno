@@ -57,6 +57,37 @@ impl BigramModel {
 
         TokenId::from_index(index).ok_or(BigramModelError::InvalidTokenIndex(index))
     }
+
+    /// Генерирует последовательность токенов, начиная с заданного токена
+    ///
+    /// `current` используется как начальный контекст и не включается
+    /// в возвращаемую последовательность
+    ///
+    /// Генерируется ровно `count` новых токенов. Каждый выбранный токен
+    /// становится текущим для следующего шага
+    ///
+    /// При `count == 0` возвращается пустой вектор
+    ///
+    /// # Errors
+    ///
+    /// Возвращает [`BigramModelError`], если на любом шаге
+    /// не удалось выбрать следующий токен.
+    pub fn generate(
+        &self,
+        current: TokenId,
+        count: usize,
+        rng: &mut impl RandomSource,
+    ) -> Result<Vec<TokenId>, BigramModelError> {
+        let mut generated = Vec::with_capacity(count);
+        let mut current = current;
+
+        for _ in 0..count {
+            current = self.next_token(current, rng)?;
+            generated.push(current);
+        }
+
+        Ok(generated)
+    }
 }
 
 /// Ошибки, возникающие при работе bigram-модели
@@ -200,5 +231,41 @@ mod tests {
                 SamplingError::InvalidRandomValue(_)
             ))
         ));
+    }
+
+    #[test]
+    fn generate_returns_requested_number_of_tokens() {
+        let model = model_with_split_distribution();
+        let mut rng = FixedRandom::new(0.0);
+
+        let generated = model.generate(token(0), 3, &mut rng).unwrap();
+
+        assert_eq!(generated.len(), 3);
+    }
+
+    #[test]
+    fn generate_returns_empty_sequence_for_zero_count() {
+        let model = model_with_split_distribution();
+        let mut rng = FixedRandom::new(0.0);
+
+        let generated = model.generate(token(0), 0, &mut rng).unwrap();
+
+        assert!(generated.is_empty());
+    }
+
+    #[test]
+    fn generate_uses_previous_token_as_next_context() {
+        let mut stats = BigramStats::new(3).unwrap();
+
+        // Детерминированная цепочка:
+        // 0 -> 1 -> 2
+        stats.observe(&[token(0), token(1), token(2)]).unwrap();
+
+        let model = BigramModel::new(stats);
+        let mut rng = FixedRandom::new(0.0);
+
+        let generated = model.generate(token(0), 2, &mut rng).unwrap();
+
+        assert_eq!(generated, vec![token(1), token(2)]);
     }
 }

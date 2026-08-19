@@ -1,3 +1,4 @@
+use rustllm::BigramModel;
 use rustllm::Rng;
 use rustllm::{BigramStats, BigramStatsError};
 use rustllm::{CharTokenizer, TokenId};
@@ -50,6 +51,18 @@ fn run(cli_args: CliArgs) -> Result<(), Box<dyn Error>> {
 
     println!();
     print_bigram_stats(&tokenizer, &stats)?;
+
+    println!();
+    let model = BigramModel::new(stats);
+    let mut rng = Rng::new(seed);
+    
+    let start = *tokens
+        .first()
+        .ok_or("cannot generate from an empty token sequence")?;
+
+    let generated_tokens = model.generate(start, 32, &mut rng)?;
+
+    println!("Generated: `{}`", tokenizer.decode(&generated_tokens)?);
 
     Ok(())
 }
