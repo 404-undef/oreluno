@@ -1,6 +1,6 @@
 [package]
-name = "rustllm"
-version = "0.0.2"
+name = "oreluno"
+version = "0.0.3"
 edition = "2024"
 
 [dependencies]

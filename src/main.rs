@@ -1,10 +1,10 @@
 mod cli;
 
 use cli::{CliArgs, CliArgsError, usage};
-use rustllm::bigram::{BigramStats, BigramStatsError};
-use rustllm::model::BigramModel;
-use rustllm::rng::Rng;
-use rustllm::tokenizer::{CharTokenizer, TokenId};
+use oreluno::bigram::{BigramStats, BigramStatsError};
+use oreluno::model::BigramModel;
+use oreluno::rng::Rng;
+use oreluno::tokenizer::{CharTokenizer, TokenId};
 use std::env;
 use std::error::Error;
 use std::fs;
