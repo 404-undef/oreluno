@@ -4,11 +4,11 @@ use std::fmt;
 
 /// Статистика переходов между соседними токенами
 ///
-/// Для vocabulary размера `V` хранит матрицу `V × V`,
+/// Для словаря размера `V` хранит матрицу `V * V`,
 /// где ячейка `(current, next)` содержит число наблюдений
 /// перехода `current -> next`
 ///
-/// Матрица хранится в одном `Vec<u64>` в row-major порядке
+/// Матрица хранится в одном `Vec<u64>` в построчном порядке
 #[derive(Debug, PartialEq)]
 pub struct BigramStats {
     counts: Vec<u64>,
@@ -16,7 +16,7 @@ pub struct BigramStats {
 }
 
 impl BigramStats {
-    /// Создаёт пустую таблицу переходов для vocabulary размера `vocab_size`
+    /// Создаёт пустую таблицу переходов для словаря размера `vocab_size`
     ///
     /// Все счётчики изначально равны нулю
     ///
@@ -24,7 +24,7 @@ impl BigramStats {
     ///
     /// Возвращает ошибку, если:
     /// - `vocab_size == 0`
-    /// - размер матрицы `vocab_size × vocab_size` не помещается в `usize`
+    /// - размер матрицы `vocab_size * vocab_size` не помещается в `usize`
     pub fn new(vocab_size: usize) -> Result<Self, BigramStatsError> {
         if vocab_size == 0 {
             return Err(BigramStatsError::EmptyVocabulary);
@@ -46,7 +46,7 @@ impl BigramStats {
     /// Для `[A, B, C]` учитываются переходы `A -> B` и `B -> C`
     /// Ранее накопленные счётчики не сбрасываются
     ///
-    /// Пустой slice и slice из одного токена не изменяют статистику
+    /// Пустой срез и срез из одного токена не изменяют статистику
     ///
     /// # Errors
     ///
@@ -82,7 +82,7 @@ impl BigramStats {
     /// # Errors
     ///
     /// Возвращает ошибку, если:
-    /// - `current` не принадлежит vocabulary
+    /// - `current` не принадлежит словарю
     /// - для `current` ещё не наблюдалось ни одного перехода
     pub fn probabilities(&self, current: TokenId) -> Result<Vec<f64>, BigramStatsError> {
         let current_idx = self.validate_token(current)?;
@@ -107,12 +107,12 @@ impl BigramStats {
         Ok(probabilities)
     }
 
-    /// Возвращает индекс перехода `(current, next)` в плоской row-major матрице
+    /// Возвращает индекс перехода `(current, next)` в плоской матрице с построчным порядком
     fn index(&self, current: TokenId, next: TokenId) -> Result<usize, BigramStatsError> {
         let current_idx = self.validate_token(current)?;
         let next_idx = self.validate_token(next)?;
 
-        // Row-major: сначала пропускаем `current` полных строк,
+        // В построчном порядке сначала пропускаем `current` полных строк,
         // затем смещаемся до столбца `next`
         let index = current_idx
             .checked_mul(self.vocab_size)
@@ -122,14 +122,14 @@ impl BigramStats {
         Ok(index)
     }
 
-    /// Проверяет, что `token` принадлежит vocabulary,
-    /// и возвращает его индекс как `usize`.
+    /// Проверяет, что `token` принадлежит словарю,
+    /// и возвращает его индекс как `usize`
     ///
     /// # Errors
     ///
     /// Возвращает ошибку, если:
-    /// - значение `TokenId` невозможно представить как `usize`;
-    /// - индекс токена находится за пределами vocabulary.
+    /// - значение `TokenId` невозможно представить как `usize`
+    /// - индекс токена находится за пределами словаря
     fn validate_token(&self, token: TokenId) -> Result<usize, BigramStatsError> {
         let token_idx = token
             .index()

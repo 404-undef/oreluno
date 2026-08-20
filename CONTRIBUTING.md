@@ -8,11 +8,11 @@
 
 Отправляя вклад в Oreluno, убедитесь, что:
 
-- вы являетесь автором кода или имеете достаточные права на его передачу проекту;
-- вклад не нарушает права работодателя, заказчика или другой организации;
-- сторонний код и материалы не копируются в проект без совместимой лицензии и необходимых разрешений;
-- код, созданный с помощью автоматических средств или генеративных систем, был вами внимательно проверен на корректность, безопасность и соответствие требованиям проекта;
-- вы готовы принять действующую версию `CLA.md` через CLA Assistant перед объединением Pull Request.
+- вы являетесь автором кода или имеете достаточные права на его передачу проекту
+- вклад не нарушает права работодателя, заказчика или другой организации
+- сторонний код и материалы не копируются в проект без совместимой лицензии и необходимых разрешений
+- код, созданный с помощью автоматических средств или генеративных систем, был вами внимательно проверен на корректность, безопасность и соответствие требованиям проекта
+- вы готовы принять действующую версию `CLA.md` через CLA Assistant перед объединением Pull Request
 
 Если вы вносите код от имени компании или другой организации, сначала свяжитесь с владельцем проекта: для таких вкладов может потребоваться отдельное соглашение с организацией.
 
@@ -47,29 +47,29 @@ cargo test
 
 Для проекта предпочтительны:
 
-- понятные имена и явные контракты;
-- отсутствие необъяснённых числовых констант и коэффициентов;
-- краткое объяснение происхождения необычных значений и формул;
-- комментарии и документация могут быть на русском или английском языке без обязательного приоритета одного из них;
-- публичная документация API, включая будущую документацию `cargo doc`, может быть на русском, на английском или на обоих языках;
-- общепринятые технические имена API и терминов следует сохранять в форме, которая обеспечивает точность и однозначность;
-- минимальные зависимости: новая зависимость должна иметь понятную необходимость.
+- понятные имена и явные контракты
+- отсутствие необъяснённых числовых констант и коэффициентов
+- краткое объяснение происхождения необычных значений и формул
+- комментарии и документация могут быть на русском или английском языке без обязательного приоритета одного из них
+- публичная документация API, включая будущую документацию `cargo doc`, может быть на русском, английском или обоих языках
+- общепринятые технические имена API и терминов следует сохранять в точной и однозначной форме
+- минимальные зависимости: новая зависимость должна иметь понятную необходимость
 
 Не выполняйте крупный архитектурный рефакторинг вместе с функциональным изменением без предварительного обсуждения.
 
 ## Pull Request
 
-В настоящее время канонической площадкой для разработки Oreluno и приёма Pull Request является [репозиторий Oreluno на GitHub](https://github.com/404-undef/oreluno). Другие размещения проекта считаются зеркалами, если владелец проекта явно не объявил иное.
+Основная площадка для разработки Oreluno и приёма Pull Request находится в [репозитории Oreluno на GitHub](https://github.com/404-undef/oreluno). Другие размещения проекта считаются зеркалами, если владелец проекта не объявил иное.
 
-В дальнейшем канонической может быть назначена любая другая площадка. В таком случае актуальное расположение основного репозитория, порядок отправки вкладов и способ принятия CLA будут указаны в этом документе и официальных материалах проекта. Смена площадки сама по себе не изменяет публичную лицензию Oreluno или условия уже принятых CLA.
+В дальнейшем основной может стать другая площадка. Тогда расположение репозитория, порядок отправки вкладов и способ принятия CLA будут указаны в этом документе и материалах проекта. Смена площадки не изменяет публичную лицензию Oreluno или условия уже принятых CLA.
 
 Pull Request должен:
 
-1. кратко объяснять проблему или цель изменения;
-2. описывать выбранное решение;
-3. указывать, как изменение было проверено;
-4. отдельно отмечать несовместимые изменения публичного API;
-5. не содержать посторонних изменений, не относящихся к заявленной задаче.
+1. кратко объяснять проблему или цель изменения
+2. описывать выбранное решение
+3. указывать, как изменение было проверено
+4. отдельно отмечать несовместимые изменения публичного API
+5. не содержать посторонних изменений, не относящихся к заявленной задаче
 
 До объединения внешнего Pull Request потребуется принять действующую версию CLA через CLA Assistant, подключённый к репозиторию.
 
@@ -77,13 +77,13 @@ Pull Request должен:
 
 ## Коммиты
 
-Сообщения коммитов могут быть на русском или английском языке и должны кратко и однозначно описывать смысл изменения.
+Сообщения коммитов могут быть на русском или английском языке и должны кратко описывать суть изменения.
 
-Один коммит по возможности должен представлять одно логически завершённое изменение.
+Один коммит по возможности должен содержать одно завершённое изменение.
 
 ## Обсуждение до реализации
 
-Для крупных изменений — новых подсистем, публичных интерфейсов, архитектурных перестроений, новых зависимостей или изменений лицензионной модели — сначала создайте обсуждение или Issue.
+Перед крупным изменением сначала создайте обсуждение или Issue. Это относится к новым подсистемам, публичным интерфейсам, архитектурным перестроениям, зависимостям и изменениям лицензионной модели.
 
 Это снижает вероятность работы над изменением, которое не будет принято.
 
@@ -91,12 +91,12 @@ Pull Request должен:
 
 Не публикуйте в Issue, Pull Request или исходном коде:
 
-- секреты и ключи доступа;
-- персональные данные без законного основания;
-- закрытый код третьих лиц;
-- материалы, для которых отсутствует право на распространение.
+- секреты и ключи доступа
+- персональные данные без законного основания
+- закрытый код третьих лиц
+- материалы, для которых отсутствует право на распространение
 
-Если вклад содержит сторонний материал, кроме уже находящегося в репозитории материала Oreluno, явно укажите в Pull Request каждую такую часть, её источник, автора (если он известен) и применимую лицензию. Не представляйте сторонний материал как собственный вклад и получите письменное одобрение владельца проекта в Pull Request до включения этого материала в Oreluno.
+Если вклад содержит сторонний материал, кроме уже находящегося в репозитории материала Oreluno, явно укажите в Pull Request каждую такую часть, её источник, автора (если он известен) и применимую лицензию. Не представляйте сторонний материал как собственный вклад и получите письменное одобрение владельца проекта в Pull Request до включения материала в Oreluno.
 
 Если применимую лицензию или право Oreluno использовать и распространять материал подтвердить невозможно, не отправляйте его.
 
@@ -116,11 +116,11 @@ Please read the rules below before submitting changes. They exist both to mainta
 
 Make sure that:
 
-- you are the author of the code or otherwise have sufficient authority to contribute it;
-- the contribution does not violate obligations to an employer, client, or other organization;
-- third-party code or material is not copied into the project without a compatible license and the necessary permissions;
-- code produced with automated or generative tools has been carefully reviewed by you for correctness, security, and compliance with the project requirements;
-- you are willing to accept the current `CLA.md` through CLA Assistant before your Pull Request is merged.
+- you are the author of the code or otherwise have sufficient authority to contribute it
+- the contribution does not violate obligations to an employer, client, or other organization
+- third-party code or material is not copied into the project without a compatible license and the necessary permissions
+- code produced with automated or generative tools has been carefully reviewed by you for correctness, security, and compliance with the project requirements
+- you are willing to accept the current `CLA.md` through CLA Assistant before your Pull Request is merged
 
 If you are contributing on behalf of a company or another organization, contact the Project Owner first. A separate entity contributor agreement may be required.
 
@@ -155,13 +155,13 @@ When a change adds behavior or fixes a defect, add a test where practical.
 
 Oreluno prefers:
 
-- clear naming and explicit contracts;
-- no unexplained numeric constants or coefficients;
-- brief explanations for unusual values and formulas;
-- comments and documentation may be written in Russian or English, with no mandatory priority between them;
-- public API documentation, including future `cargo doc` documentation, may be written in Russian, in English, or in both languages;
-- established API names and technical terms should use the form that provides the clearest and most precise meaning;
-- minimal dependencies, with a clear reason for every new dependency.
+- clear naming and explicit contracts
+- no unexplained numeric constants or coefficients
+- brief explanations for unusual values and formulas
+- comments and documentation may be written in Russian or English, with no mandatory priority between them
+- public API documentation, including future `cargo doc` documentation, may be written in Russian, in English, or in both languages
+- established API names and technical terms should use the form that provides the clearest and most precise meaning
+- minimal dependencies, with a clear reason for every new dependency
 
 Avoid combining a large architectural refactor with an unrelated functional change unless it has been discussed beforehand.
 
@@ -173,11 +173,11 @@ Any other platform may be designated as canonical in the future. If that happens
 
 A Pull Request should:
 
-1. briefly explain the problem or purpose of the change;
-2. describe the chosen solution;
-3. explain how the change was tested;
-4. clearly identify breaking changes to the public API;
-5. avoid unrelated modifications.
+1. briefly explain the problem or purpose of the change
+2. describe the chosen solution
+3. explain how the change was tested
+4. clearly identify breaking changes to the public API
+5. avoid unrelated modifications
 
 Before an external Pull Request is merged, the contributor must accept the current CLA through CLA Assistant configured for the repository.
 
@@ -199,10 +199,10 @@ This reduces the risk of spending substantial effort on a change that cannot be 
 
 Do not publish in Issues, Pull Requests, or source code:
 
-- secrets or access credentials;
-- personal data without a lawful basis;
-- confidential third-party code;
-- material that you do not have the right to distribute.
+- secrets or access credentials
+- personal data without a lawful basis
+- confidential third-party code
+- material that you do not have the right to distribute
 
 If a contribution contains third-party material other than Oreluno material already present in the repository, clearly identify each such portion in the Pull Request and provide its source, author (if known), and applicable license. Do not represent third-party material as your own Contribution, and obtain the Project Owner's written approval in the Pull Request before the material is included in Oreluno.
 

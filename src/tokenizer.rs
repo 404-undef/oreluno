@@ -21,20 +21,20 @@ use std::fmt;
 
 /// Компактный числовой идентификатор токена
 ///
-/// Значение соответствует позиции токена в vocabulary
+/// Значение соответствует позиции токена в словаре
 /// Для [`CharTokenizer`] каждый `TokenId` соответствует одному Unicode `char`
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct TokenId(u32);
 
 impl TokenId {
-    /// Создаёт `TokenId` из индекса vocabulary
+    /// Создаёт `TokenId` из индекса словаря
     ///
     /// Возвращает `None`, если `index` не помещается во внутренний `u32`
     pub fn from_index(index: usize) -> Option<Self> {
         u32::try_from(index).ok().map(Self)
     }
 
-    /// Возвращает числовое значение токена как индекс `usize`.
+    /// Возвращает числовое значение токена как индекс `usize`
     ///
     /// Возвращает `None`, если значение невозможно представить как `usize`
     /// на текущей платформе
@@ -49,9 +49,9 @@ impl fmt::Display for TokenId {
     }
 }
 
-/// Character-level tokenizer с детерминированным vocabulary
+/// Посимвольный токенизатор с детерминированным словарём
 ///
-/// Каждый уникальный Unicode `char` корпуса получает отдельный [`TokenId`].
+/// Каждый уникальный символ Unicode в корпусе получает отдельный [`TokenId`]
 /// Идентификаторы назначаются в порядке сортировки символов
 #[derive(Debug, PartialEq, Eq)]
 pub struct CharTokenizer {
@@ -60,10 +60,10 @@ pub struct CharTokenizer {
 }
 
 impl CharTokenizer {
-    /// Строит tokenizer по уникальным символам `corpus`
+    /// Строит токенизатор по уникальным символам `corpus`
     ///
     /// Символы сортируются перед назначением идентификаторов, поэтому
-    /// одинаковый набор символов всегда создаёт одинаковое vocabulary
+    /// одинаковый набор символов всегда создаёт одинаковый словарь
     ///
     /// # Errors
     ///
@@ -94,7 +94,7 @@ impl CharTokenizer {
     /// # Errors
     ///
     /// Возвращает [`TokenizerError::UnknownChar`], если `text` содержит
-    /// символ, отсутствующий в vocabulary
+    /// символ, отсутствующий в словаре
     pub fn encode(&self, text: &str) -> Result<Vec<TokenId>, TokenizerError> {
         let mut output = Vec::with_capacity(text.len());
 
@@ -116,7 +116,7 @@ impl CharTokenizer {
     ///
     /// Возвращает:
     /// - [`TokenizerError::TokenIdToUsizeOverflow`], если значение токена невозможно представить как `usize`
-    /// - [`TokenizerError::UnknownTokenId`], если идентификатор отсутствует в vocabulary
+    /// - [`TokenizerError::UnknownTokenId`], если идентификатор отсутствует в словаре
     pub fn decode(&self, tokens: &[TokenId]) -> Result<String, TokenizerError> {
         let mut output = String::with_capacity(tokens.len());
 
@@ -134,7 +134,7 @@ impl CharTokenizer {
         Ok(output)
     }
 
-    /// Возвращает количество токенов в vocabulary
+    /// Возвращает количество токенов в словаре
     pub fn vocab_size(&self) -> usize {
         self.id_to_char.len()
     }
@@ -143,9 +143,9 @@ impl CharTokenizer {
 /// Ошибки, возникающие при создании и использовании [`CharTokenizer`]
 #[derive(Debug, PartialEq)]
 pub enum TokenizerError {
-    /// Идентификатор токена отсутствует в vocabulary
+    /// Идентификатор токена отсутствует в словаре
     UnknownTokenId(TokenId),
-    /// Символ отсутствует в vocabulary
+    /// Символ отсутствует в словаре
     UnknownChar(char),
     /// Позиция токена не помещается во внутреннее представление [`TokenId`]
     TokenIdPosOverflow,

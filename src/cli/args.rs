@@ -151,10 +151,10 @@ pub enum CliArgsError {
     Usage,
 }
 
-/// Реализуем Error для CliArgsError, чтобы можно было использовать его в Result
+/// Реализует `Error`, чтобы `CliArgsError` можно было возвращать через `Result`
 impl Error for CliArgsError {}
 
-/// Реализуем Display для CliArgsError, чтобы можно было красиво выводить ошибки пользователю
+/// Реализует `Display` для понятного вывода ошибок
 impl std::fmt::Display for CliArgsError {
     /// Форматирует ошибку разбора аргументов для отображения пользователю
     fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

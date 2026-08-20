@@ -30,7 +30,7 @@ fn main() {
     }
 }
 
-/// Выполняет основной pipeline LM с уже разобранными аргументами CLI
+/// Запускает основной конвейер языковой модели с готовыми аргументами командной строки
 fn run(cli_args: CliArgs) -> Result<(), Box<dyn Error>> {
     let text = match (cli_args.train, cli_args.text) {
         (Some(path), _) => fs::read_to_string(path)?,
@@ -123,7 +123,7 @@ fn print_bigram_stats(
     Ok(())
 }
 
-/// Получает строку из stdin и возвращает её
+/// Читает строку из стандартного потока ввода
 #[allow(dead_code)]
 fn text_from_input() -> Result<String, io::Error> {
     let mut input_str = String::new();
@@ -133,38 +133,3 @@ fn text_from_input() -> Result<String, io::Error> {
     io::stdin().read_line(&mut input_str)?;
     Ok(input_str.to_string())
 }
-
-/*
-Roadmap проекта
-
-Level 0 — Bigram ML с нуля
-  0.1 — Corpus + Tokenizer
-  0.2 — Statistical Bigram Model
-  0.3 — Training Data + Weight Matrix + Logits
-  0.4 — Softmax + Cross-Entropy
-  0.5 — Manual Gradients + Gradient Descent
-  0.6 — Training + Validation
-  0.7 — Generation + Serialization
-  0.8 — Финализация Level 0
-
-После Level 0:
-  - финальный commit/tag;
-  - переименование проекта;
-  - переход на Cargo workspace;
-  - начало универсального ML-framework.
-
-Level 1 — Tensor Core
-Level 2 — Autograd
-Level 3 — Neural Network Core
-Level 4 — Self-Attention
-Level 5 — Transformer
-Level 6 — Tiny GPT / Language Model
-Level 7 — Data + Training Infrastructure
-Level 8 — CPU Optimization
-Level 9 — GPU / Accelerator Backend
-Level 10+ — General-Purpose ML Framework
-            (LLM, Vision, Multimodal и другие направления)
-
-Текущая точка:
-  Level 0 → 0.3
-*/
