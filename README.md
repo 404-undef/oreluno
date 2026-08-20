@@ -88,6 +88,6 @@ cargo doc --no-deps --open
 
 ## Лицензирование
 
-Oreluno распространяется на условиях [PolyForm Noncommercial License 1.0.0](LICENSE)
+Oreluno распространяется на условиях [PolyForm Noncommercial License 1.0.0](LICENSE.md)
 
 Публичная лицензия разрешает использование только для предусмотренных ею некоммерческих целей. Информация о получении разрешения на коммерческое использование находится в [COMMERCIAL.md](COMMERCIAL.md)

@@ -26,7 +26,7 @@
 
 Подробные юридические условия определяются файлом [`CLA.md`](CLA.md).
 
-Публичное использование Oreluno регулируется файлом [`LICENSE`](LICENSE). Информация о коммерческом лицензировании находится в [`COMMERCIAL.md`](COMMERCIAL.md).
+Публичное использование Oreluno регулируется файлом [`LICENSE.md`](LICENSE.md). Информация о коммерческом лицензировании находится в [`COMMERCIAL.md`](COMMERCIAL.md).
 
 ## Подготовка изменений
 
@@ -134,7 +134,7 @@ If a Contribution is included in a public release of Oreluno, that Contribution 
 
 The complete legal terms are defined in [`CLA.md`](CLA.md).
 
-Public use of Oreluno is governed by [`LICENSE`](LICENSE). Information about commercial licensing is available in [`COMMERCIAL.md`](COMMERCIAL.md).
+Public use of Oreluno is governed by [`LICENSE.md`](LICENSE.md). Information about commercial licensing is available in [`COMMERCIAL.md`](COMMERCIAL.md).
 
 ## Preparing changes
 
