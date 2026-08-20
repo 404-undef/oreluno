@@ -101,11 +101,11 @@ fn required_arg<T>(value: Option<T>, name: &'static str) -> Result<T, CliArgsErr
 // Возвращает строку с инструкцией по использованию программы
 pub fn usage() -> &'static str {
     "\
-RustLLM
+Oreluno
 
 Usage:
-    rustllm --text <text> [options]
-    rustllm --train <path> [options]
+    oreluno --text <text> [options]
+    oreluno --train <path> [options]
 
 Modes:
     --text <text>
