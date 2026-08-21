@@ -1,0 +1,31 @@
+name: Предложение / Feature request
+description: Предложить изменение или новую возможность / Suggest a change or new feature
+title: "[Предложение / Feature]: "
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Что нужно изменить / What should change
+      description: Опишите задачу или ограничение текущей версии / Describe the problem or current limitation
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Предлагаемое решение / Proposed solution
+      description: Опишите ожидаемое поведение или результат / Describe the expected behavior or result
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Другие варианты / Alternatives
+      description: Какие другие решения вы рассматривали / What other solutions you considered
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Дополнительные сведения / Additional context
+      description: Добавьте примеры, ссылки или снимки экрана / Add examples, links, or screenshots

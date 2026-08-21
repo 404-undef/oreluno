@@ -1,0 +1,63 @@
+name: Ошибка / Bug report
+description: Сообщить об ошибке в Oreluno / Report a bug in Oreluno
+title: "[Ошибка / Bug]: "
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Описание / Description
+      description: Что произошло / What happened
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Как воспроизвести / Steps to reproduce
+      description: Последовательность действий, которая приводит к ошибке / Steps that trigger the bug
+      placeholder: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Ожидаемый результат / Expected behavior
+      description: Что должно было произойти / What you expected to happen
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Фактический результат / Actual behavior
+      description: Что произошло вместо этого / What happened instead
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Версия / Version
+      description: Версия Oreluno или хеш коммита / Oreluno version or commit hash
+      placeholder: main, v0.1.0 или хеш коммита / main, v0.1.0, or commit hash
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: Среда / Environment
+      description: Операционная система и версия Rust / Operating system and Rust version
+      placeholder: Windows 11, rustc 1.97.1
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Журналы и дополнительные сведения / Logs and additional context
+      description: Добавьте журналы, снимки экрана или другие полезные сведения / Add logs, screenshots, or other useful details
